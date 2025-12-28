@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation'
 import { 
   Building2, 
   Mail, 
@@ -13,12 +14,24 @@ import {
   Upload, 
   Check, 
   Info,
-  Palette
+  Palette,
+  ChevronLeft,
+  ChevronRight,
+  User,
+  Lock,
+  Bell,
+  Moon,
+  LogOut,
+  CloudLightning,
+  Plus,
+  Settings as SettingsIcon
 } from 'lucide-react'
 
 export default function SettingsPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
+  const [user, setUser] = useState<any>(null)
   const [settings, setSettings] = useState({
     company_name: '',
     company_phone: '',
@@ -26,41 +39,32 @@ export default function SettingsPage() {
     company_address: '',
     default_tax_rate: 0,
     next_invoice_number: 1,
-    brand_color: '#2563eb',
-    accent_color: '#000000',
+    brand_color: '#135BEC',
+    accent_color: '#F2F4F7',
     logo_url: '',
     default_notes: ''
   })
 
   useEffect(() => {
-    fetchSettings()
+    fetchData()
   }, [])
 
-  const fetchSettings = async () => {
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .eq('id', 1)
-      .single()
+  const fetchData = async () => {
+    const [{ data: userData }, { data: settingsData }] = await Promise.all([
+      supabase.auth.getUser(),
+      supabase.from('settings').select('*').eq('id', 1).single()
+    ])
     
-    if (data) {
-      // Merge with defaults to ensure no null values break controlled inputs
+    setUser(userData.user)
+    if (settingsData) {
       setSettings(prev => ({
         ...prev,
-        company_name: data.company_name ?? '',
-        company_phone: data.company_phone ?? '',
-        company_email: data.company_email ?? '',
-        company_address: data.company_address ?? '',
-        default_tax_rate: data.default_tax_rate ?? 0,
-        next_invoice_number: data.next_invoice_number ?? 1,
-        brand_color: data.brand_color ?? '#2563eb',
-        accent_color: data.accent_color ?? '#000000',
-        logo_url: data.logo_url ?? '',
-        default_notes: data.default_notes ?? ''
+        ...settingsData,
+        company_name: settingsData.company_name ?? '',
+        brand_color: settingsData.brand_color ?? '#135BEC'
       }))
     }
   }
-
 
   const handleSave = async () => {
     setLoading(true)
@@ -79,211 +83,213 @@ export default function SettingsPage() {
     setLoading(false)
   }
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+  }
+
+  const ColorSwatch = ({ color }: { color: string }) => (
+    <button 
+      onClick={() => setSettings({...settings, brand_color: color})}
+      className={`w-12 h-12 rounded-full border-4 transition-all ${settings.brand_color.toLowerCase() === color.toLowerCase() ? 'border-primary ring-2 ring-primary/20 scale-110' : 'border-white hover:scale-105 shadow-sm'}`}
+      style={{ backgroundColor: color }}
+    >
+      {settings.brand_color.toLowerCase() === color.toLowerCase() && <Check className="w-5 h-5 text-white mx-auto shadow-sm" />}
+    </button>
+  )
+
+  const swatches = [
+    '#135BEC', // Primary Blue
+    '#F04438', // Red
+    '#F79009', // Orange
+    '#12B76A', // Green
+    '#7F56D9', // Purple
+    '#EE46BC', // Pink
+  ]
+
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-12">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Company Settings</h1>
-          <p className="text-slate-500 text-sm mt-1">Manage your business details and branding for invoices.</p>
+    <div className="min-h-screen bg-slate-50/50 flex flex-col">
+       {/* Top Navigation */}
+       <header className="bg-white border-b border-slate-100 h-16 flex items-center px-6 sticky top-0 z-30">
+        <div className="max-w-xl mx-auto w-full flex items-center justify-between">
+          <button onClick={() => router.back()} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
+            <ChevronLeft className="w-6 h-6 text-slate-900" />
+          </button>
+          <h1 className="text-lg font-bold text-slate-900">Settings</h1>
+          <button 
+            onClick={handleSave} 
+            disabled={loading}
+            className="text-primary hover:text-primary/80 font-bold transition-colors disabled:opacity-50"
+          >
+            {loading ? 'Saving...' : 'Save'}
+          </button>
         </div>
-        <button 
-          onClick={handleSave}
-          disabled={loading}
-          className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all flex items-center gap-2 shadow-sm disabled:opacity-50"
-        >
-          <Check className="w-4 h-4" />
-          {loading ? 'Saving...' : 'Save Changes'}
-        </button>
-      </div>
+      </header>
 
-      {message && (
-        <div className={`p-4 rounded-xl text-sm font-medium ${message.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-600'}`}>
-          {message}
-        </div>
-      )}
-
-      {/* Branding Section */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 space-y-6">
-        <div className="flex items-center gap-2 pb-4 border-b border-slate-50">
-          <Palette className="w-5 h-5 text-blue-600" />
-          <h2 className="font-bold text-slate-900">Branding</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-             <label className="block text-sm font-semibold text-slate-700">Company Logo</label>
-             <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center gap-3 hover:border-blue-400 hover:bg-blue-50/50 transition-all cursor-pointer group">
-                <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                  <Upload className="w-6 h-6 text-blue-500" />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-bold text-slate-900">Click to upload or drag and drop</p>
-                  <p className="text-xs text-slate-400 mt-1">SVG, PNG, JPG or GIF (max. 800x400px)</p>
-                </div>
-             </div>
-          </div>
-
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700">Brand Color</label>
-              <div className="flex items-center gap-3">
-                <input 
-                  type="color" 
-                  value={settings.brand_color}
-                  onChange={(e) => setSettings({...settings, brand_color: e.target.value})}
-                  className="w-12 h-12 rounded-lg border-2 border-slate-100 cursor-pointer p-0.5 overflow-hidden" 
-                />
+      <main className="flex-1 pb-32">
+        <div className="max-w-xl mx-auto px-6 py-10 space-y-12">
+          
+          {/* Branding Section */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-2 text-slate-400 font-bold uppercase tracking-widest text-[10px] ml-1">
+              <CloudLightning className="w-4 h-4" />
+              Branding
+            </div>
+            
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-premium divide-y divide-slate-50">
+              <div className="p-8 space-y-4">
+                <label className="text-sm font-bold text-slate-600 block">Company Name</label>
                 <input 
                   type="text" 
-                  value={settings.brand_color}
-                  onChange={(e) => setSettings({...settings, brand_color: e.target.value})}
-                  className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  value={settings.company_name}
+                  onChange={(e) => setSettings({...settings, company_name: e.target.value})}
+                  className="w-full h-14 px-6 bg-slate-50 border border-slate-100 rounded-2xl text-base font-bold text-slate-900 focus:bg-white focus:border-primary transition-all outline-none"
+                  placeholder="Apex Remodeling"
                 />
               </div>
+
+              <div className="p-8 space-y-6">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-slate-600">Brand Color</label>
+                  <div className="bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 flex items-center gap-2">
+                    <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: settings.brand_color }} />
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-tight">{settings.brand_color}</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-4">
+                  {swatches.map(color => <ColorSwatch key={color} color={color} />)}
+                  <div className="relative group">
+                    <input 
+                      type="color" 
+                      value={settings.brand_color}
+                      onChange={(e) => setSettings({...settings, brand_color: e.target.value.toUpperCase()})}
+                      className="w-12 h-12 rounded-full border-4 border-white opacity-0 absolute inset-0 cursor-pointer z-10"
+                    />
+                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center bg-slate-50 group-hover:bg-white transition-colors">
+                      <Plus className="w-4 h-4 text-slate-400" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="relative group mt-2">
+                  <Hash className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text"
+                    value={settings.brand_color}
+                    onChange={(e) => setSettings({...settings, brand_color: e.target.value})}
+                    className="w-full h-14 pl-14 pr-6 bg-slate-50 border border-slate-100 rounded-2xl text-base font-bold text-slate-900 focus:bg-white focus:border-primary transition-all outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="p-8 space-y-4">
+                <label className="text-sm font-bold text-slate-600 block">Company Logo</label>
+                <div className="border-2 border-dashed border-slate-100 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 bg-slate-50/50 hover:bg-white hover:border-primary/30 transition-all cursor-pointer group">
+                  <div className="w-16 h-16 bg-blue-100/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Upload className="w-8 h-8 text-primary" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-base font-bold text-slate-900">Tap to upload</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG up to 5MB</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Account Section */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-2 text-slate-400 font-bold uppercase tracking-widest text-[10px] ml-1">
+              <User className="w-4 h-4" />
+              Account
             </div>
             
             <div className="space-y-4">
-              <label className="block text-sm font-semibold text-slate-700">Accent Color</label>
-              <div className="flex items-center gap-3">
-                <input 
-                  type="color" 
-                  value={settings.accent_color}
-                  onChange={(e) => setSettings({...settings, accent_color: e.target.value})}
-                  className="w-12 h-12 rounded-lg border-2 border-slate-100 cursor-pointer p-0.5 overflow-hidden" 
-                />
-                <input 
-                  type="text" 
-                  value={settings.accent_color}
-                  onChange={(e) => setSettings({...settings, accent_color: e.target.value})}
-                  className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                />
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-premium p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors cursor-pointer group">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center border-2 border-white shadow-sm overflow-hidden">
+                    {user?.user_metadata?.avatar_url ? (
+                       <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-7 h-7 text-slate-400" />
+                    )}
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-lg">{user?.user_metadata?.full_name || 'Business Owner'}</h4>
+                    <p className="text-sm font-medium text-slate-500 tracking-tight">{user?.email}</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-slate-900 transition-colors" />
+              </div>
+
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-premium p-6 flex items-center justify-between hover:bg-slate-50/50 transition-colors cursor-pointer group">
+                <div className="flex items-center gap-4">
+                  <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center">
+                    <Lock className="w-7 h-7 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-lg">Change Password</h4>
+                    <p className="text-sm font-medium text-slate-500 tracking-tight">Protect your account</p>
+                  </div>
+                </div>
+                <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-slate-900 transition-colors" />
               </div>
             </div>
+          </section>
+
+          {/* Preferences Section */}
+          <section className="space-y-6">
+            <div className="flex items-center gap-2 text-slate-400 font-bold uppercase tracking-widest text-[10px] ml-1">
+              <SettingsIcon className="w-4 h-4" />
+              Preferences
+            </div>
+            
+            <div className="bg-white rounded-3xl border border-slate-100 shadow-premium divide-y divide-slate-50 overflow-hidden">
+              <div className="p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center">
+                    <Bell className="w-6 h-6 text-orange-600" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">Email Notifications</h4>
+                    <p className="text-xs font-medium text-slate-400 tracking-tight">Invoices & Updates</p>
+                  </div>
+                </div>
+                <div className="w-14 h-8 bg-primary rounded-full relative cursor-pointer">
+                  <div className="absolute right-1 top-1 w-6 h-6 bg-white rounded-full shadow-sm" />
+                </div>
+              </div>
+
+              <div className="p-6 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center">
+                    <Moon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900">Dark Mode</h4>
+                    <p className="text-xs font-medium text-slate-400 tracking-tight">Experimental</p>
+                  </div>
+                </div>
+                <div className="w-14 h-8 bg-slate-200 rounded-full relative cursor-pointer">
+                  <div className="absolute left-1 top-1 w-6 h-6 bg-white rounded-full shadow-sm shadow-slate-400/20" />
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <button 
+            onClick={handleSignOut}
+            className="w-full h-16 bg-red-50 text-red-600 font-bold rounded-2xl hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+          >
+            Sign Out
+          </button>
+
+          <div className="text-center pt-8">
+            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em]">Version 1.2.0 (Build 472)</p>
           </div>
         </div>
-      </div>
-
-      {/* Business Information */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 space-y-6">
-        <div className="flex items-center gap-2 pb-4 border-b border-slate-50">
-          <Building2 className="w-5 h-5 text-blue-600" />
-          <h2 className="font-bold text-slate-900">Business Information</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">Company Name</label>
-            <div className="relative">
-              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="text" 
-                value={settings.company_name}
-                onChange={(e) => setSettings({...settings, company_name: e.target.value})}
-                placeholder="RemodelFlow Construction"
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">Business Email</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="email" 
-                value={settings.company_email}
-                onChange={(e) => setSettings({...settings, company_email: e.target.value})}
-                placeholder="contact@remodel.pro"
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">Phone Number</label>
-            <div className="relative">
-              <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="text" 
-                value={settings.company_phone}
-                onChange={(e) => setSettings({...settings, company_phone: e.target.value})}
-                placeholder="+1 (555) 123-4567"
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
-              />
-            </div>
-          </div>
-
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">Mailing Address</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-4 w-4 h-4 text-slate-400" />
-              <textarea 
-                rows={3}
-                value={settings.company_address}
-                onChange={(e) => setSettings({...settings, company_address: e.target.value})}
-                placeholder="123 Builder Lane, Suite 100, San Francisco, CA 94107"
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none" 
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Financial Defaults */}
-      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8 space-y-6">
-        <div className="flex items-center gap-2 pb-4 border-b border-slate-50">
-          <Percent className="w-5 h-5 text-blue-600" />
-          <h2 className="font-bold text-slate-900">Financial Defaults</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">Default Tax Rate</label>
-            <div className="relative">
-              <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="number" 
-                step="0.01"
-                value={settings.default_tax_rate}
-                onChange={(e) => setSettings({...settings, default_tax_rate: parseFloat(e.target.value)})}
-                className="w-full pl-11 pr-12 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">%</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">Next Invoice Number</label>
-            <div className="relative">
-              <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input 
-                type="number" 
-                value={settings.next_invoice_number}
-                onChange={(e) => setSettings({...settings, next_invoice_number: parseInt(e.target.value)})}
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20" 
-              />
-            </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400 mt-2 px-1">
-              <Info className="w-3 h-3 text-blue-500" />
-              <p>This number will automatically increment on every new invoice.</p>
-            </div>
-          </div>
-
-          <div className="md:col-span-2 space-y-2">
-            <label className="text-sm font-semibold text-slate-700 ml-1">Default Notes & Payment Terms</label>
-            <div className="relative">
-              <FileText className="absolute left-4 top-4 w-4 h-4 text-slate-400" />
-              <textarea 
-                rows={4}
-                value={settings.default_notes}
-                onChange={(e) => setSettings({...settings, default_notes: e.target.value})}
-                placeholder="Payment due upon receipt. Thank you for choosing RemodelFlow for your renovation needs."
-                className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none" 
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   )
 }

@@ -12,7 +12,9 @@ import {
   Check,
   Loader2,
   Mic,
-  MicOff
+  MicOff,
+  ChevronRight,
+  Info
 } from 'lucide-react'
 
 interface InvoiceData {
@@ -205,59 +207,60 @@ export default function AIChat({ clients, onApplyInvoice }: AIChatProps) {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 p-4 bg-gradient-to-br from-blue-600 to-indigo-600 text-white rounded-2xl shadow-2xl shadow-blue-500/30 hover:scale-105 transition-all ${isOpen ? 'hidden' : ''}`}
+        className={`fixed bottom-8 right-8 z-40 w-16 h-16 bg-primary text-white rounded-[1.5rem] shadow-2xl shadow-primary/30 hover:scale-110 active:scale-95 transition-all flex items-center justify-center group ${isOpen ? 'hidden' : ''}`}
       >
-        <Sparkles className="w-6 h-6" />
+        <Sparkles className="w-8 h-8 group-hover:rotate-12 transition-transform" />
+        <div className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-400 rounded-full border-4 border-slate-50 animate-pulse" />
       </button>
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="fixed bottom-6 right-6 z-50 w-[420px] h-[600px] bg-white rounded-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
+        <div className="fixed bottom-8 right-8 z-50 w-[440px] h-[680px] bg-white rounded-[2.5rem] shadow-premium border border-slate-100 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8 duration-500">
           {/* Header */}
-          <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-white/20 rounded-xl">
-                <Sparkles className="w-5 h-5 text-white" />
+          <div className="px-8 py-6 bg-slate-900 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center border border-white/10">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-white">AI Invoice Assistant</h3>
-                <p className="text-blue-100 text-xs">Describe your invoice in plain English</p>
+                <h3 className="font-bold text-white tracking-tight">AI Assistant</h3>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+                  <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest">Active Now</p>
+                </div>
               </div>
             </div>
             <button 
               onClick={() => setIsOpen(false)}
-              className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+              className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-xl transition-colors group"
             >
-              <X className="w-5 h-5 text-white" />
+              <X className="w-5 h-5 text-white group-hover:rotate-90 transition-transform" />
             </button>
           </div>
 
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white custom-scrollbar">
             {messages.length === 0 && (
-              <div className="text-center py-10 px-6">
-                <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <Bot className="w-8 h-8 text-blue-600" />
+              <div className="text-center py-8 space-y-6">
+                <div className="w-20 h-20 bg-primary/10 rounded-[2rem] flex items-center justify-center mx-auto">
+                  <Bot className="w-10 h-10 text-primary" />
                 </div>
-                <h4 className="font-bold text-slate-900 mb-2">Let's create an invoice!</h4>
-                <p className="text-slate-500 text-sm leading-relaxed mb-3">
-                  I'll help you build your invoice step by step. Just tell me what work was done:
-                </p>
-                <div className="mt-4 space-y-2 text-left">
-                  <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl text-xs border border-blue-100">
-                    <div className="font-bold text-blue-900 mb-1">💬 Conversational Example:</div>
-                    <div className="text-slate-600 space-y-1">
-                      <div><strong>You:</strong> "Kitchen remodel"</div>
-                      <div><strong>AI:</strong> "What labor items should I include?"</div>
-                      <div><strong>You:</strong> "Demolition $500, cabinet install $600"</div>
-                      <div><strong>AI:</strong> "Any materials needed?"</div>
-                      <div><strong>You:</strong> "Yes, 5 boxes of tile at $40 each"</div>
-                      <div><strong>AI:</strong> "Anything else?"</div>
-                      <div><strong>You:</strong> "That's it, create it"</div>
-                    </div>
-                  </div>
-                  <div className="p-3 bg-white rounded-xl text-xs text-slate-600 border border-slate-100">
-                    <strong>Quick mode:</strong> "Invoice for John Doe - demolition $500, tile work $300, 3 boxes tile at $50 each. Done."
+                <div className="space-y-2">
+                  <h4 className="text-2xl font-extrabold text-slate-900 font-outfit">Ready to build?</h4>
+                  <p className="text-slate-500 font-medium px-4">
+                    Describe the work you've done and I'll handle the line items for you.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 gap-3 text-left">
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <Info className="w-3 h-3 text-primary" />
+                      Try say something like
+                    </p>
+                    <p className="text-sm font-bold text-slate-700 leading-relaxed italic">
+                      "Invoice for Apex regarding kitchen demolition $500 and 5 boxes of tile at $40 each."
+                    </p>
                   </div>
                 </div>
               </div>
@@ -269,52 +272,45 @@ export default function AIChat({ clients, onApplyInvoice }: AIChatProps) {
               return (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : ''}`}
+                  className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : ''}`}
                 >
                   {message.role === 'assistant' && (
-                    <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                      <Bot className="w-4 h-4 text-blue-600" />
+                    <div className="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100 shrink-0 self-end">
+                      <Bot className="w-5 h-5 text-primary" />
                     </div>
                   )}
                   <div
-                    className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm ${
+                    className={`max-w-[85%] px-5 py-4 text-sm font-medium leading-relaxed ${
                       message.role === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-white border border-slate-100 text-slate-700'
+                        ? 'bg-primary text-white rounded-[1.5rem] rounded-br-none shadow-lg shadow-primary/20'
+                        : 'bg-slate-50 text-slate-700 rounded-[1.5rem] rounded-bl-none border border-slate-100'
                     }`}
                   >
-                    {displayText || (isLoading && message.role === 'assistant' ? 'Thinking...' : '')}
+                    {displayText || (isLoading && message.role === 'assistant' ? 'Processing...' : '')}
                     
                     {/* Show extracted invoice indicator */}
                     {message.role === 'assistant' && message.content.includes('```invoice_data') && (
-                      <div className="mt-3 p-3 bg-emerald-50 rounded-xl border border-emerald-100">
-                        <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
+                      <div className="mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100/50">
+                        <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs uppercase tracking-tight">
                           <Check className="w-4 h-4" />
-                          Invoice data extracted!
+                          Data Extracted
                         </div>
                       </div>
                     )}
                   </div>
-                  {message.role === 'user' && (
-                    <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center shrink-0">
-                      <User className="w-4 h-4 text-slate-500" />
-                    </div>
-                  )}
                 </div>
               )
             })}
 
             {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-              <div className="flex gap-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-xl flex items-center justify-center">
-                  <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+              <div className="flex gap-4">
+                <div className="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
                 </div>
-                <div className="px-4 py-3 bg-white border border-slate-100 rounded-2xl">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 bg-slate-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                  </div>
+                <div className="px-5 py-4 bg-slate-50 rounded-[1.5rem] rounded-bl-none border border-slate-100 flex gap-1.5">
+                  <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <div className="w-1.5 h-1.5 bg-primary/65 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
               </div>
             )}
@@ -322,56 +318,52 @@ export default function AIChat({ clients, onApplyInvoice }: AIChatProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Apply Button */}
-          {extractedInvoice && (
-            <div className="px-4 py-3 bg-emerald-50 border-t border-emerald-100">
+          {/* Action Bar */}
+          <div className="px-6 py-4 bg-white border-t border-slate-100 space-y-4">
+            {extractedInvoice && (
               <button
                 onClick={handleApply}
-                className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                className="w-full h-14 bg-emerald-600 text-white font-bold rounded-2xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 group animate-in slide-in-from-bottom-2"
               >
-                <Check className="w-4 h-4" />
-                Apply to Invoice Form
+                <Check className="w-5 h-5" />
+                Apply to Form
+                <ChevronRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform" />
               </button>
-            </div>
-          )}
+            )}
 
-          {/* Input */}
-          <form onSubmit={handleSubmit} className="p-4 border-t border-slate-100 bg-white">
-            <div className="flex gap-2">
-              {/* Microphone Button */}
-              <button
-                type="button"
-                onClick={toggleListening}
-                className={`px-3 py-3 rounded-xl transition-all flex items-center justify-center ${
-                  isListening 
-                    ? 'bg-red-500 text-white animate-pulse' 
-                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                }`}
-                title={isListening ? 'Stop listening' : 'Start voice input'}
-              >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </button>
-              
+            {/* Input Overlay */}
+            <form onSubmit={handleSubmit} className="relative">
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isListening ? 'Listening...' : 'Describe your invoice...'}
-                className={`flex-1 px-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
-                  isListening 
-                    ? 'bg-red-50 border-red-200' 
-                    : 'bg-slate-50 border-slate-200 focus:bg-white'
+                placeholder={isListening ? 'Listening...' : 'Message Assistant...'}
+                className={`w-full h-14 pl-14 pr-14 bg-slate-50 border-2 border-slate-50 rounded-3xl text-sm font-bold text-slate-900 focus:bg-white focus:border-primary transition-all outline-none ${
+                  isListening ? 'bg-red-50 border-red-100' : ''
                 }`}
               />
+              
+              <button
+                type="button"
+                onClick={toggleListening}
+                className={`absolute left-2 top-2 w-10 h-10 rounded-2xl flex items-center justify-center transition-all ${
+                  isListening 
+                    ? 'bg-red-500 text-white animate-pulse' 
+                    : 'text-slate-400 hover:bg-slate-200'
+                }`}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </button>
+
               <button
                 type="submit"
                 disabled={isLoading || !input.trim()}
-                className="px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="absolute right-2 top-2 w-10 h-10 bg-primary text-white rounded-2xl flex items-center justify-center hover:bg-primary/90 transition-all disabled:opacity-30 disabled:grayscale"
               >
                 <Send className="w-4 h-4" />
               </button>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
       )}
     </>
