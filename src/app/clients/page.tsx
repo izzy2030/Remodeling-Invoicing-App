@@ -171,7 +171,7 @@ export default function ClientsPage() {
       {/* Add Client Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-50 flex items-center justify-center p-4">
-           <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden">
+           <div className="bg-white rounded-[3rem] w-full max-w-xl md:max-w-3xl shadow-2xl animate-in zoom-in-95 duration-300 relative overflow-hidden">
               <div className="absolute top-6 right-8">
                 <button 
                   onClick={() => setShowModal(false)}

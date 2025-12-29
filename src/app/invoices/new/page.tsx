@@ -193,11 +193,11 @@ export default function NewInvoicePage() {
 
   const StepIndicator = ({ current, total, label }: { current: number, total: number, label: string }) => (
     <div className="bg-white border-b border-slate-100 px-6 py-4">
-      <div className="max-w-xl mx-auto flex items-center justify-between mb-4">
+      <div className="max-w-xl md:max-w-4xl mx-auto flex items-center justify-between mb-4">
         <span className="text-sm font-bold text-slate-900">Step {current} of {total}</span>
         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">{label}</span>
       </div>
-      <div className="max-w-xl mx-auto h-1.5 bg-slate-100 rounded-full overflow-hidden">
+      <div className="max-w-xl md:max-w-4xl mx-auto h-1.5 bg-slate-100 rounded-full overflow-hidden">
         <div 
           className="h-full bg-primary transition-all duration-500 rounded-full"
           style={{ width: `${(current / total) * 100}%` }}
@@ -210,7 +210,7 @@ export default function NewInvoicePage() {
     <div className="min-h-screen bg-slate-50/50 flex flex-col">
       {/* Top Navigation */}
       <header className="bg-white border-b border-slate-100 h-16 flex items-center px-6 sticky top-0 z-30">
-        <div className="max-w-xl mx-auto w-full flex items-center justify-between">
+        <div className="max-w-xl md:max-w-4xl mx-auto w-full flex items-center justify-between">
           <button onClick={() => router.back()} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
             <ChevronLeft className="w-6 h-6 text-slate-900" />
           </button>
@@ -230,13 +230,13 @@ export default function NewInvoicePage() {
 
       {/* Main Content */}
       <main className="flex-1 pb-32">
-        <div className="max-w-xl mx-auto px-6 py-10">
+        <div className="max-w-xl md:max-w-4xl mx-auto px-6 py-10">
           
           {step === 1 && (
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <h2 className="text-3xl font-bold text-slate-900 font-outfit">Invoice Details</h2>
               
-              <div className="space-y-8">
+              <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-slate-600 ml-1">Client</label>
                   <div className="relative group">
@@ -250,10 +250,6 @@ export default function NewInvoicePage() {
                     </select>
                     <ChevronDown className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary transition-colors pointer-events-none" />
                   </div>
-                  <p className="text-xs text-slate-400 font-medium ml-1 flex items-center gap-1.5">
-                    <Info className="w-3 h-3" />
-                    Who is this invoice for?
-                  </p>
                 </div>
 
                 <div className="space-y-3">
@@ -269,6 +265,7 @@ export default function NewInvoicePage() {
                     <Pencil className="absolute right-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
                   </div>
                 </div>
+              </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-3">
@@ -304,8 +301,7 @@ export default function NewInvoicePage() {
                    <p className="text-sm font-semibold text-slate-500">Line items will be added in the next step.</p>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
           {step === 2 && (
             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -546,7 +542,7 @@ export default function NewInvoicePage() {
 
       {/* Bottom Action Bar */}
       <footer className="fixed bottom-0 left-0 md:left-64 right-0 p-6 bg-white/90 backdrop-blur-md border-t border-slate-100 z-30">
-        <div className="max-w-xl mx-auto flex items-center gap-4">
+        <div className="max-w-xl md:max-w-4xl mx-auto flex items-center gap-4">
           {step > 1 && (
             <button 
               onClick={() => setStep(step - 1)}

@@ -111,7 +111,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-slate-50/50 flex flex-col">
        {/* Top Navigation */}
        <header className="bg-white border-b border-slate-100 h-16 flex items-center px-6 sticky top-0 z-30">
-        <div className="max-w-xl mx-auto w-full flex items-center justify-between">
+        <div className="max-w-xl md:max-w-4xl mx-auto w-full flex items-center justify-between">
           <button onClick={() => router.back()} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
             <ChevronLeft className="w-6 h-6 text-slate-900" />
           </button>
@@ -127,7 +127,7 @@ export default function SettingsPage() {
       </header>
 
       <main className="flex-1 pb-32">
-        <div className="max-w-xl mx-auto px-6 py-10 space-y-12">
+        <div className="max-w-xl md:max-w-4xl mx-auto px-6 py-10 space-y-12">
           
           {/* Branding Section */}
           <section className="space-y-6">

@@ -116,7 +116,7 @@ export default function InvoicesPage() {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="bg-slate-50/50 px-8 py-4 rounded-2xl">
+          <div className="bg-slate-50/50 px-8 py-4 rounded-2xl hidden md:block">
             <div className="grid grid-cols-12 gap-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
               <div className="col-span-4">Client / Invoice #</div>
               <div className="col-span-3 text-center">Status / Due</div>
@@ -132,8 +132,8 @@ export default function InvoicesPage() {
               
               return (
                 <div key={invoice.id} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-premium hover:border-primary/20 transition-all group">
-                  <div className="grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-4 flex items-center gap-4">
+                  <div className="flex flex-col md:grid md:grid-cols-12 gap-6 md:gap-4 items-start md:items-center">
+                    <div className="w-full md:col-span-4 flex items-center gap-4">
                       <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center font-bold text-slate-400 border border-slate-100">
                         {invoice.clients?.name?.[0]}
                       </div>
@@ -143,19 +143,23 @@ export default function InvoicesPage() {
                       </div>
                     </div>
                     
-                    <div className="col-span-3 flex flex-col items-center gap-2">
+                    <div className="w-full md:col-span-3 flex md:flex-col items-center md:items-center justify-between md:justify-center gap-2">
+                       <span className="md:hidden text-xs font-bold text-slate-400 uppercase tracking-widest">Status</span>
                       <span className={`px-4 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest border ${status.color}`}>
                         {status.label}
                       </span>
                       <p className="text-xs font-bold text-slate-400">Due {invoice.due_date}</p>
                     </div>
 
-                    <div className="col-span-3 text-right">
-                      <p className="text-2xl font-bold text-slate-900">${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Grand Total</p>
+                    <div className="w-full md:col-span-3 flex md:block items-center justify-between md:text-right">
+                      <span className="md:hidden text-xs font-bold text-slate-400 uppercase tracking-widest">Total</span>
+                      <div>
+                        <p className="text-2xl font-bold text-slate-900">${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                        <p className="hidden md:block text-[10px] font-bold text-slate-400 uppercase tracking-widest">Grand Total</p>
+                      </div>
                     </div>
 
-                    <div className="col-span-2 flex justify-end gap-2">
+                    <div className="w-full md:col-span-2 flex justify-end gap-2 border-t md:border-t-0 border-slate-50 pt-6 md:pt-0 mt-2 md:mt-0">
                       <Link 
                         href={`/invoices/${invoice.id}`}
                         className="w-12 h-12 flex items-center justify-center bg-slate-50 text-slate-400 rounded-2xl hover:bg-primary hover:text-white transition-all shadow-sm"

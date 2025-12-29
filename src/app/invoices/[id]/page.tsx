@@ -237,7 +237,7 @@ export default function InvoiceDetailPage() {
 
               {/* Totals Section */}
               <div className="flex justify-end pt-12 border-t-2 border-slate-900">
-                <div className="w-80 space-y-6">
+                <div className="w-full md:w-80 space-y-6">
                   <div className="space-y-3 px-2">
                     <div className="flex justify-between items-center text-sm font-bold text-slate-400">
                       <span className="uppercase tracking-widest">Job Subtotal</span>
