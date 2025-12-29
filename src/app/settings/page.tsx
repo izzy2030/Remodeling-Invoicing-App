@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
 import { 
@@ -29,6 +29,7 @@ import {
 
 export default function SettingsPage() {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [user, setUser] = useState<any>(null)
@@ -86,6 +87,31 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     router.push('/login')
+  }
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setLoading(true)
+    const fileExt = file.name.split('.').pop()
+    const fileName = `company-logo-${Date.now()}.${fileExt}`
+    const { error: uploadError } = await supabase.storage
+      .from('logos')
+      .upload(fileName, file)
+
+    if (uploadError) {
+      setMessage('Error uploading logo')
+      setLoading(false)
+      return
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('logos')
+      .getPublicUrl(fileName)
+
+    setSettings(prev => ({ ...prev, logo_url: publicUrl }))
+    setLoading(false)
   }
 
   const ColorSwatch = ({ color }: { color: string }) => (
@@ -185,14 +211,35 @@ export default function SettingsPage() {
 
               <div className="p-8 space-y-4">
                 <label className="text-sm font-bold text-slate-600 block">Company Logo</label>
-                <div className="border-2 border-dashed border-slate-100 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 bg-slate-50/50 hover:bg-white hover:border-primary/30 transition-all cursor-pointer group">
-                  <div className="w-16 h-16 bg-blue-100/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Upload className="w-8 h-8 text-primary" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-base font-bold text-slate-900">Tap to upload</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG up to 5MB</p>
-                  </div>
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="border-2 border-dashed border-slate-100 rounded-3xl p-10 flex flex-col items-center justify-center gap-4 bg-slate-50/50 hover:bg-white hover:border-primary/30 transition-all cursor-pointer group relative overflow-hidden"
+                >
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    className="hidden" 
+                    accept="image/*"
+                    onChange={handleLogoUpload}
+                  />
+                  {settings.logo_url ? (
+                    <>
+                      <img src={settings.logo_url} alt="Company Logo" className="h-32 object-contain relative z-10" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-20">
+                         <p className="text-xs font-bold text-slate-600 bg-white px-3 py-1.5 rounded-full shadow-sm">Change Logo</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-16 h-16 bg-blue-100/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <Upload className="w-8 h-8 text-primary" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-base font-bold text-slate-900">Tap to upload</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">PNG, JPG up to 5MB</p>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

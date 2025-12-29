@@ -23,7 +23,6 @@ import {
   X,
   Info
 } from 'lucide-react'
-import AIChat from '@/components/AIChat'
 
 export default function NewInvoicePage() {
   const router = useRouter()
@@ -70,6 +69,18 @@ export default function NewInvoicePage() {
         notes: settingsRes.data.default_notes ?? ''
       }))
     }
+
+    // Check for AI-generated invoice data
+    const aiData = sessionStorage.getItem('ai_invoice_data')
+    if (aiData) {
+      try {
+        const parsed = JSON.parse(aiData)
+        handleApplyAIInvoice(parsed, clientsRes.data || [])
+        sessionStorage.removeItem('ai_invoice_data')
+      } catch (e) {
+        console.error('Failed to parse AI invoice data', e)
+      }
+    }
   }
 
   const calculateTotals = () => {
@@ -110,8 +121,9 @@ export default function NewInvoicePage() {
     setMaterialItems(updated)
   }
 
-  const handleApplyAIInvoice = (aiData: any) => {
-    const matchedClient = clients.find(c => 
+  const handleApplyAIInvoice = (aiData: any, clientList?: any[]) => {
+    const searchClients = clientList || clients
+    const matchedClient = searchClients.find(c => 
       c.name.toLowerCase().includes(aiData.client_name?.toLowerCase() || '')
     )
 
@@ -580,9 +592,6 @@ export default function NewInvoicePage() {
           )}
         </div>
       </footer>
-
-      {/* AI Chat Assistant */}
-      <AIChat clients={clients} onApplyInvoice={handleApplyAIInvoice} />
     </div>
   )
 }

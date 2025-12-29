@@ -1,25 +1,25 @@
 @import "tailwindcss";
 
 :root {
-  --background: #F8F9FD;
-  --foreground: #101828;
+  --background: #FFFFFF;
+  --foreground: #09090b;
   --card: #FFFFFF;
-  --card-foreground: #101828;
+  --card-foreground: #09090b;
   --popover: #FFFFFF;
-  --popover-foreground: #101828;
-  --primary: #135BEC;
+  --popover-foreground: #09090b;
+  --primary: #09090b;
   --primary-foreground: #FFFFFF;
-  --secondary: #F2F4F7;
-  --secondary-foreground: #344054;
-  --muted: #F2F4F7;
-  --muted-foreground: #667085;
-  --accent: #F9FAFB;
-  --accent-foreground: #1D2939;
-  --destructive: #F04438;
-  --destructive-foreground: #FFFFFF;
-  --border: #EAECF0;
-  --input: #D0D5DD;
-  --ring: #135BEC;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #ef4444;
+  --destructive-foreground: #fafafa;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #09090b;
   --radius: 1rem;
 }
 
@@ -44,7 +44,10 @@
   
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
-  --radius-3xl: 2rem;
+  --radius-3xl: 2.25rem;
+
+  --shadow-premium: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-soft: 0 4px 6px -1px rgb(0 0 0 / 0.03), 0 2px 4px -2px rgb(0 0 0 / 0.03);
 }
 
 body {
@@ -52,6 +55,15 @@ body {
   color: var(--foreground);
   font-feature-settings: "rlig" 1, "calt" 1;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+/* Screenshot Background Aesthetic - Subdued */
+.bg-mesh {
+  background-color: #fcfcfd;
+  background-image: 
+    radial-gradient(at 100% 0%, hsla(240,5%,96%,1) 0, transparent 50%), 
+    radial-gradient(at 0% 100%, hsla(240,5%,98%,1) 0, transparent 50%);
 }
 
 @layer base {
@@ -76,10 +88,10 @@ body {
 
 /* Glassmorphism utility */
 .glass {
-  @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-sm;
+  @apply bg-white/70 backdrop-blur-xl border border-white/40 shadow-soft;
 }
 
-/* Premium shadows */
-.shadow-premium {
-  box-shadow: 0 10px 15px -3px rgba(16, 24, 40, 0.03), 0 4px 6px -4px rgba(16, 24, 40, 0.02);
+/* Card aesthetic */
+.card-premium {
+  @apply bg-white rounded-3xl border border-slate-100 shadow-premium hover:shadow-soft transition-all duration-300;
 }
