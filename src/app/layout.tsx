@@ -1,5 +1,6 @@
 import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
 import AppShell from '@/components/layout/AppShell'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import './globals.css'
 
 const jakarta = Plus_Jakarta_Sans({ 
@@ -27,9 +28,11 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${jakarta.variable} ${outfit.variable}`} suppressHydrationWarning>
       <body className="font-jakarta min-h-screen bg-background text-foreground antialiased selection:bg-primary/10 selection:text-primary">
-        <AppShell>
-          {children}
-        </AppShell>
+        <ThemeProvider>
+          <AppShell>
+            {children}
+          </AppShell>
+        </ThemeProvider>
       </body>
     </html>
   )

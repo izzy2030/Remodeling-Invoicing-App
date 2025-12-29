@@ -27,7 +27,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-mesh p-6">
-      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 bg-white rounded-[3rem] shadow-xl overflow-hidden border border-slate-100">
+      <div className="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-2 bg-card rounded-[3rem] shadow-xl overflow-hidden border border-border">
         {/* Left Side: Login Form */}
         <div className="flex flex-col justify-center px-8 sm:px-16 lg:px-24 py-20">
           <div className="max-w-md w-full mx-auto">
@@ -35,14 +35,14 @@ export default function LoginPage() {
               <div className="bg-yellow-400 p-2.5 rounded-2xl shadow-sm border-2 border-slate-900">
                 <Zap className="w-6 h-6 text-slate-900 fill-slate-900" />
               </div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight font-outfit uppercase italic">Flow</h1>
+              <h1 className="text-2xl font-black text-foreground tracking-tight font-outfit uppercase italic">Flow</h1>
             </div>
 
             <div className="mb-12">
-              <h2 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight font-outfit leading-tight italic">
+              <h2 className="text-4xl font-extrabold text-foreground mb-4 tracking-tight font-outfit leading-tight italic">
                 Get more done <span className="text-primary italic">with Flow.</span>
               </h2>
-              <p className="text-slate-500 font-medium leading-relaxed">
+              <p className="text-muted-foreground font-medium leading-relaxed">
                 Seamless professional invoicing for modern contractors.
               </p>
             </div>
@@ -50,7 +50,7 @@ export default function LoginPage() {
             <div className="space-y-4">
               <button
                 onClick={handleGoogleLogin}
-                className="w-full h-16 flex items-center justify-between px-8 bg-white border border-slate-100 text-slate-900 font-bold rounded-2xl hover:border-primary hover:bg-slate-50 transition-all group"
+                className="w-full h-16 flex items-center justify-between px-8 bg-background border border-border text-foreground font-bold rounded-2xl hover:border-primary hover:bg-secondary transition-all group"
               >
                 <div className="flex items-center gap-4">
                   <svg className="w-6 h-6" viewBox="0 0 24 24">
@@ -73,28 +73,28 @@ export default function LoginPage() {
                   </svg>
                   Continue with Google
                 </div>
-                <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all" />
               </button>
 
-              <button className="w-full h-16 flex items-center justify-between px-8 bg-slate-900 border border-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all group shadow-sm">
+              <button className="w-full h-16 flex items-center justify-between px-8 bg-foreground border border-foreground text-background font-bold rounded-2xl hover:opacity-90 transition-all group shadow-sm">
                 <div className="flex items-center gap-4 text-sm uppercase tracking-widest font-black">
                   <Github className="w-5 h-5" />
                   GitHub Login
                 </div>
-                <ArrowRight className="w-5 h-5 text-white/30 group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-5 h-5 text-background/30 group-hover:translate-x-1 transition-all" />
               </button>
             </div>
 
-            <div className="mt-12 text-center text-xs font-bold text-slate-300 uppercase tracking-widest">
+            <div className="mt-12 text-center text-xs font-bold text-muted-foreground/30 uppercase tracking-widest">
               Secured by Supabase Auth
             </div>
           </div>
         </div>
 
         {/* Right Side: Showcase */}
-        <div className="hidden lg:block relative p-6 bg-slate-50">
+        <div className="hidden lg:block relative p-6 bg-secondary/50">
           <div className="relative h-full w-full bg-primary rounded-[2.5rem] overflow-hidden flex flex-col justify-end p-20 shadow-lg">
-            <div className="absolute top-0 right-0 -mr-32 -mt-32 w-[600px] h-[600px] bg-white/10 rounded-full blur-[120px]" />
+            <div className="absolute top-0 right-0 -mr-32 -mt-32 w-[600px] h-[600px] bg-background/10 rounded-full blur-[120px]" />
             <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '40px 40px' }} />
             
             <div className="relative z-10 max-w-lg space-y-10">

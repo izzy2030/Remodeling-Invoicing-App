@@ -16,6 +16,7 @@ import {
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 const mainNav = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -50,12 +51,12 @@ export default function Sidebar() {
     <Link
       href={item.href}
       className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group ${isActive
-        ? 'bg-slate-100 text-slate-900 border border-slate-200'
-        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+        ? 'bg-secondary text-foreground border border-border'
+        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
         }`}
     >
       <div className="flex items-center gap-3">
-        <item.icon className={`w-5 h-5 ${isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-600'}`} />
+        <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-foreground'}`} />
         <span className="font-medium text-[13px] tracking-tight">{item.name}</span>
       </div>
     </Link>
@@ -69,7 +70,7 @@ export default function Sidebar() {
             <Zap className="w-5 h-5 text-slate-900 fill-slate-900" />
           </div>
           <div className="md:hidden lg:block">
-            <h1 className="font-black text-slate-900 leading-none tracking-tight font-outfit uppercase">Flow</h1>
+            <h1 className="font-black text-foreground leading-none tracking-tight font-outfit uppercase italic">Flow</h1>
           </div>
         </div>
       </div>
@@ -85,21 +86,21 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <div className="mt-auto p-4">
+      <div className="mt-auto p-4 border-t border-border">
         <div className="flex items-center gap-3 px-2">
-          <div className="w-8 h-8 rounded-full bg-slate-200 border border-white shadow-sm overflow-hidden">
+          <div className="w-8 h-8 rounded-full bg-secondary border border-border shadow-sm overflow-hidden">
             {user?.user_metadata?.avatar_url ? (
               <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
             ) : (
-              <User className="w-full h-full p-2 text-slate-400 outline-none" />
+              <User className="w-full h-full p-2 text-muted-foreground outline-none" />
             )}
           </div>
           <div className="flex-1 min-w-0 pr-2">
-            <p className="text-[11px] font-bold text-slate-900 truncate tracking-tight">
+            <p className="text-[11px] font-bold text-foreground truncate tracking-tight">
               {user?.user_metadata?.full_name || 'Business'}
             </p>
           </div>
-          <button onClick={handleSignOut} className="text-slate-400 hover:text-red-500 transition-colors">
+          <button onClick={handleSignOut} className="text-muted-foreground hover:text-destructive transition-colors">
             <LogOut className="w-4 h-4" />
           </button>
         </div>
@@ -109,32 +110,34 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Header */}
-      <header className="fixed top-0 left-0 right-0 h-14 bg-white/70 backdrop-blur-md border-b border-slate-100 md:hidden z-50">
+      <header className="fixed top-0 left-0 right-0 h-14 bg-card/70 backdrop-blur-md border-b border-border md:hidden z-50">
         <div className="h-full px-4 flex items-center justify-between">
           <div className="bg-yellow-400 p-1.5 rounded-lg border-2 border-slate-900 shadow-sm">
             <Zap className="w-4 h-4 text-slate-900 fill-slate-900" />
           </div>
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="w-10 h-10 flex items-center justify-center text-slate-600 rounded-xl"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="w-10 h-10 flex items-center justify-center text-muted-foreground rounded-xl"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-slate-900/10 backdrop-blur-sm z-50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
+        <div className="fixed inset-0 bg-background/50 backdrop-blur-sm z-50 md:hidden" onClick={() => setMobileMenuOpen(false)} />
       )}
 
       {/* Mobile Slide-in Menu */}
-      <aside className={`fixed inset-y-0 right-0 w-72 bg-white border-l border-slate-100 md:hidden z-50 transform transition-transform duration-300 ease-out ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+      <aside className={`fixed inset-y-0 right-0 w-72 bg-card border-l border-border md:hidden z-50 transform transition-transform duration-300 ease-out ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}>
         <button
           onClick={() => setMobileMenuOpen(false)}
-          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-slate-400"
+          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-muted-foreground"
         >
           <X className="w-6 h-6" />
         </button>
@@ -142,7 +145,7 @@ export default function Sidebar() {
       </aside>
 
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 w-64 bg-[#fdfdfe] border-r border-slate-100 hidden md:flex flex-col z-40">
+      <aside className="fixed inset-y-0 left-0 w-64 bg-card border-r border-border hidden md:flex flex-col z-40">
         <SidebarContent />
       </aside>
     </>
