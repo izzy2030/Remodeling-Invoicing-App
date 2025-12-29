@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
-import { 
-  Plus, 
-  Search, 
-  Bell, 
-  Loader2, 
-  TrendingUp, 
-  Users, 
-  Clock, 
+import {
+  Plus,
+  Search,
+  Bell,
+  Loader2,
+  TrendingUp,
+  Users,
+  Clock,
   Calendar,
   ArrowUpRight,
   TrendingDown,
@@ -21,8 +21,11 @@ import {
   MoreHorizontal
 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Suspense } from 'react'
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState({ totalRevenue: 0, pendingCount: 0, clientCount: 0 })
@@ -34,20 +37,32 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     setLoading(true)
-    const [{ data: { user: currentUser } }, invoicesRes, clientsRes] = await Promise.all([
+    const [
+      { data: { user: currentUser } },
+      invoicesRes,
+      clientsRes,
+      settingsRes
+    ] = await Promise.all([
       supabase.auth.getUser(),
       supabase.from('invoices').select('*, clients(*)').order('created_at', { ascending: false }).limit(6),
-      supabase.from('clients').select('*', { count: 'exact' })
+      supabase.from('clients').select('*', { count: 'exact' }),
+      supabase.from('settings').select('*').eq('id', 1).single()
     ])
 
     setUser(currentUser)
-    
+
+    // Onboarding check: If company name or address is missing, redirect to settings
+    if (!settingsRes.data?.company_name || !settingsRes.data?.company_address) {
+      router.push('/settings?onboarding=true')
+      return
+    }
+
     if (invoicesRes.data) {
       setRecentInvoices(invoicesRes.data)
-      
+
       const total = invoicesRes.data.reduce((acc, inv) => {
-        const subtotal = (inv.labor_line1_amount || 0) + (inv.labor_line2_amount || 0) + 
-                         (inv.materials_line1_amount || 0) + (inv.materials_line2_amount || 0)
+        const subtotal = (inv.labor_line1_amount || 0) + (inv.labor_line2_amount || 0) +
+          (inv.materials_line1_amount || 0) + (inv.materials_line2_amount || 0)
         const tax = (subtotal * (inv.tax_rate || 0)) / 100
         return acc + subtotal + tax
       }, 0)
@@ -71,16 +86,16 @@ export default function DashboardPage() {
   const Sparkline = ({ color, trend }: { color: string, trend: 'up' | 'down' }) => (
     <div className="w-32 h-12 relative overflow-hidden">
       <svg viewBox="0 0 100 40" className="w-full h-full overflow-visible">
-        <path 
-          d={trend === 'up' ? "M0 35 Q 25 35, 40 25 T 70 20 T 100 5" : "M0 5 Q 25 5, 40 15 T 70 20 T 100 35"} 
-          fill="none" 
-          stroke={color} 
-          strokeWidth="3" 
+        <path
+          d={trend === 'up' ? "M0 35 Q 25 35, 40 25 T 70 20 T 100 5" : "M0 5 Q 25 5, 40 15 T 70 20 T 100 35"}
+          fill="none"
+          stroke={color}
+          strokeWidth="3"
           strokeLinecap="round"
           className="animate-draw"
         />
-        <path 
-          d={trend === 'up' ? "M0 35 Q 25 35, 40 25 T 70 20 T 100 5 V 40 H 0 Z" : "M0 5 Q 25 5, 40 15 T 70 20 T 100 35 V 40 H 0 Z"} 
+        <path
+          d={trend === 'up' ? "M0 35 Q 25 35, 40 25 T 70 20 T 100 5 V 40 H 0 Z" : "M0 5 Q 25 5, 40 15 T 70 20 T 100 35 V 40 H 0 Z"}
           fill={`url(#gradient-${color})`}
           opacity="0.1"
         />
@@ -116,9 +131,9 @@ export default function DashboardPage() {
   )
 
   const ActivityCard = ({ invoice }: { invoice: any }) => {
-    const total = (invoice.labor_line1_amount || 0) + (invoice.labor_line2_amount || 0) + 
-                  (invoice.materials_line1_amount || 0) + (invoice.materials_line2_amount || 0)
-    
+    const total = (invoice.labor_line1_amount || 0) + (invoice.labor_line2_amount || 0) +
+      (invoice.materials_line1_amount || 0) + (invoice.materials_line2_amount || 0)
+
     return (
       <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-premium group hover:border-slate-200 transition-all">
         <div className="flex justify-between items-start mb-4">
@@ -139,14 +154,14 @@ export default function DashboardPage() {
             <MoreHorizontal className="w-4 h-4" />
           </button>
         </div>
-        
+
         <div className="pt-4 border-t border-slate-50">
           <div className="flex justify-between items-end">
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Amount Due</p>
               <p className="text-lg font-black text-slate-900 font-outfit leading-none">${total.toLocaleString()}</p>
             </div>
-            <Link 
+            <Link
               href={`/invoices/${invoice.id}`}
               className="w-8 h-8 flex items-center justify-center bg-slate-50 text-slate-400 rounded-lg hover:bg-primary hover:text-white transition-all"
             >
@@ -170,29 +185,29 @@ export default function DashboardPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <StatCard 
-          title="New invoices" 
-          value={stats.pendingCount.toString()} 
-          trend="up" 
-          trendValue="15%" 
-          color="#09090b" 
-          sparkTrend="up" 
+        <StatCard
+          title="New invoices"
+          value={stats.pendingCount.toString()}
+          trend="up"
+          trendValue="15%"
+          color="#09090b"
+          sparkTrend="up"
         />
-        <StatCard 
-          title="Pending amount" 
-          value={`$${(stats.totalRevenue * 0.4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
-          trend="down" 
-          trendValue="4%" 
-          color="#f59e0b" 
-          sparkTrend="down" 
+        <StatCard
+          title="Pending amount"
+          value={`$${(stats.totalRevenue * 0.4).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          trend="down"
+          trendValue="4%"
+          color="#f59e0b"
+          sparkTrend="down"
         />
-        <StatCard 
-          title="Avg. invoice value" 
-          value={`$${(stats.totalRevenue / (stats.pendingCount || 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}`} 
-          trend="up" 
-          trendValue="8%" 
-          color="#10b981" 
-          sparkTrend="up" 
+        <StatCard
+          title="Avg. invoice value"
+          value={`$${(stats.totalRevenue / (stats.pendingCount || 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+          trend="up"
+          trendValue="8%"
+          color="#10b981"
+          sparkTrend="up"
         />
       </div>
 
@@ -244,7 +259,7 @@ export default function DashboardPage() {
       <div className="bg-slate-900 p-10 rounded-[3rem] text-white shadow-premium relative overflow-hidden group">
         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 bg-slate-800 rounded-full blur-[100px] group-hover:scale-150 transition-transform duration-1000 opacity-50" />
         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-slate-800 rounded-full blur-[80px] opacity-30" />
-        
+
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
           <div className="space-y-6 max-w-xl">
             <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
@@ -253,7 +268,7 @@ export default function DashboardPage() {
             <div>
               <h4 className="text-4xl font-black font-outfit leading-none mb-4 italic">Next Gen Billing</h4>
               <p className="text-white/60 font-medium text-lg leading-relaxed">
-                Automate your entire remodeling business with our AI-powered flow assistant. 
+                Automate your entire remodeling business with our AI-powered flow assistant.
                 Just speak your invoice details and we'll handle the rest.
               </p>
             </div>
@@ -264,7 +279,7 @@ export default function DashboardPage() {
           </div>
           <div className="hidden lg:block text-white/5">
             <div className="w-64 h-64 border-4 border-white/5 rounded-full flex items-center justify-center relative">
-               <Zap className="w-24 h-24 text-white opacity-5" />
+              <Zap className="w-24 h-24 text-white opacity-5" />
             </div>
           </div>
         </div>
