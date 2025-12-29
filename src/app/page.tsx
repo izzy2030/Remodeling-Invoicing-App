@@ -51,12 +51,6 @@ export default function DashboardPage() {
 
     setUser(currentUser)
 
-    // Onboarding check: If company name or address is missing, redirect to settings
-    if (!settingsRes.data?.company_name || !settingsRes.data?.company_address) {
-      router.push('/settings?onboarding=true')
-      return
-    }
-
     if (invoicesRes.data) {
       setRecentInvoices(invoicesRes.data)
 

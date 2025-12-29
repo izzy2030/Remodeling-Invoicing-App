@@ -1,16 +1,17 @@
 'use client'
 
 import Link from 'next/link'
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Users, 
+import {
+  LayoutDashboard,
+  FileText,
+  Users,
   Zap,
   User,
   Menu,
   X,
   LogOut,
-  Sparkles
+  Sparkles,
+  Settings
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
@@ -21,6 +22,7 @@ const mainNav = [
   { name: 'Invoices', href: '/invoices', icon: FileText },
   { name: 'AI Invoice', href: '/invoices/ai', icon: Sparkles },
   { name: 'Clients', href: '/clients', icon: Users },
+  { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
 export default function Sidebar() {
@@ -47,11 +49,10 @@ export default function Sidebar() {
   const NavItem = ({ item, isActive }: { item: any, isActive: boolean }) => (
     <Link
       href={item.href}
-      className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group ${
-        isActive 
-          ? 'bg-slate-100 text-slate-900 border border-slate-200' 
-          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-      }`}
+      className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 group ${isActive
+        ? 'bg-slate-100 text-slate-900 border border-slate-200'
+        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+        }`}
     >
       <div className="flex items-center gap-3">
         <item.icon className={`w-5 h-5 ${isActive ? 'text-slate-900' : 'text-slate-400 group-hover:text-slate-600'}`} />
@@ -88,7 +89,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3 px-2">
           <div className="w-8 h-8 rounded-full bg-slate-200 border border-white shadow-sm overflow-hidden">
             {user?.user_metadata?.avatar_url ? (
-               <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+              <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               <User className="w-full h-full p-2 text-slate-400 outline-none" />
             )}
@@ -114,7 +115,7 @@ export default function Sidebar() {
           <div className="bg-yellow-400 p-1.5 rounded-lg border-2 border-slate-900 shadow-sm">
             <Zap className="w-4 h-4 text-slate-900 fill-slate-900" />
           </div>
-          <button 
+          <button
             onClick={() => setMobileMenuOpen(true)}
             className="w-10 h-10 flex items-center justify-center text-slate-600 rounded-xl"
           >
@@ -129,10 +130,9 @@ export default function Sidebar() {
       )}
 
       {/* Mobile Slide-in Menu */}
-      <aside className={`fixed inset-y-0 right-0 w-72 bg-white border-l border-slate-100 md:hidden z-50 transform transition-transform duration-300 ease-out ${
-        mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
-      }`}>
-        <button 
+      <aside className={`fixed inset-y-0 right-0 w-72 bg-white border-l border-slate-100 md:hidden z-50 transform transition-transform duration-300 ease-out ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+        <button
           onClick={() => setMobileMenuOpen(false)}
           className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-slate-400"
         >
