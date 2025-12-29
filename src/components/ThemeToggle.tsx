@@ -1,7 +1,7 @@
 'use client'
 
-import { Moon, Sun } from 'lucide-react'
-import { useTheme } from './ThemeProvider'
+import { useTheme } from '@/components/ThemeProvider'
+import { Sun, Moon } from 'lucide-react'
 
 export function ThemeToggle() {
   const { theme, toggleTheme } = useTheme()
@@ -9,14 +9,27 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="p-2.5 rounded-xl bg-secondary text-secondary-foreground hover:bg-muted transition-colors border border-border flex items-center justify-center"
+      className="relative h-10 w-10 bg-card border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-all group overflow-hidden"
       aria-label="Toggle theme"
     >
-      {theme === 'light' ? (
-        <Moon className="w-5 h-5" />
-      ) : (
-        <Sun className="w-5 h-5" />
-      )}
+      {/* Sun icon */}
+      <Sun
+        className={`w-4 h-4 absolute transition-all duration-300 ${theme === 'light'
+            ? 'opacity-100 rotate-0 scale-100'
+            : 'opacity-0 rotate-90 scale-0'
+          }`}
+      />
+
+      {/* Moon icon */}
+      <Moon
+        className={`w-4 h-4 absolute transition-all duration-300 ${theme === 'dark'
+            ? 'opacity-100 rotate-0 scale-100'
+            : 'opacity-0 -rotate-90 scale-0'
+          }`}
+      />
+
+      {/* Hover glow effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl" />
     </button>
   )
 }

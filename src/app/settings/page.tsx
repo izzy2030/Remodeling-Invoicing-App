@@ -10,10 +10,8 @@ import {
   MapPin,
   Percent,
   Hash,
-  FileText,
   Upload,
   Check,
-  Info,
   Palette,
   ChevronLeft,
   ChevronRight,
@@ -22,14 +20,26 @@ import {
   Bell,
   Moon,
   LogOut,
-  CloudLightning,
+  Hammer,
   Plus,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Sparkles,
+  Shield,
+  CreditCard
 } from 'lucide-react'
 
 export default function SettingsPage() {
   return (
-    <Suspense fallback={<div>Loading Settings...</div>}>
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-32">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl mx-auto flex items-center justify-center">
+            <SettingsIcon className="w-6 h-6 text-primary-foreground animate-spin" />
+          </div>
+          <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">Loading Settings...</p>
+        </div>
+      </div>
+    }>
       <SettingsContent />
     </Suspense>
   )
@@ -50,7 +60,7 @@ function SettingsContent() {
     company_address: '',
     default_tax_rate: 0,
     next_invoice_number: 1,
-    brand_color: '#3b82f6',
+    brand_color: '#c45d35',
     logo_url: '',
   })
 
@@ -73,7 +83,7 @@ function SettingsContent() {
         company_address: settingsData.company_address ?? '',
         default_tax_rate: settingsData.default_tax_rate ?? 0,
         next_invoice_number: settingsData.next_invoice_number ?? 1,
-        brand_color: settingsData.brand_color ?? '#3b82f6',
+        brand_color: settingsData.brand_color ?? '#c45d35',
         logo_url: settingsData.logo_url ?? ''
       })
     }
@@ -126,299 +136,326 @@ function SettingsContent() {
     setLoading(false)
   }
 
+  const swatches = [
+    '#c45d35', // Copper (default)
+    '#3b82f6', // Blue
+    '#10b981', // Green
+    '#8b5cf6', // Purple
+    '#f59e0b', // Amber
+    '#ec4899', // Pink
+  ]
+
   const ColorSwatch = ({ color }: { color: string }) => (
     <button
       onClick={() => setSettings({ ...settings, brand_color: color })}
-      className={`w-12 h-12 rounded-full border-4 transition-all ${settings.brand_color.toLowerCase() === color.toLowerCase() ? 'border-primary ring-2 ring-primary/20 scale-110' : 'border-white hover:scale-105 shadow-sm'}`}
+      className={`w-10 h-10 rounded-full transition-all duration-300 ${settings.brand_color.toLowerCase() === color.toLowerCase()
+          ? 'ring-2 ring-offset-2 ring-offset-background ring-primary scale-110'
+          : 'hover:scale-105 shadow-sm'
+        }`}
       style={{ backgroundColor: color }}
     >
-      {settings.brand_color.toLowerCase() === color.toLowerCase() && <Check className="w-5 h-5 text-white mx-auto shadow-sm" />}
+      {settings.brand_color.toLowerCase() === color.toLowerCase() && (
+        <Check className="w-4 h-4 text-white mx-auto drop-shadow-sm" />
+      )}
     </button>
   )
 
-  const swatches = [
-    '#3b82f6', // Primary Blue
-    '#F04438', // Red
-    '#F79009', // Orange
-    '#12B76A', // Green
-    '#7F56D9', // Purple
-    '#EE46BC', // Pink
-  ]
-
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Top Navigation */}
-      <header className="bg-card border-b border-border h-16 flex items-center px-6 sticky top-0 z-30">
-        <div className="max-w-xl md:max-w-4xl mx-auto w-full flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 hover:bg-secondary rounded-full transition-colors">
-            <ChevronLeft className="w-6 h-6 text-foreground" />
+    <div className="min-h-screen bg-background pb-20">
+      {/* Header */}
+      <header className="bg-card/80 backdrop-blur-xl border-b border-border h-16 flex items-center px-6 sticky top-0 z-30">
+        <div className="max-w-3xl mx-auto w-full flex items-center justify-between">
+          <button
+            onClick={() => router.back()}
+            className="p-2 hover:bg-secondary rounded-xl transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-lg font-bold text-foreground">Settings</h1>
+          <h1 className="text-lg font-bold text-foreground font-syne">Settings</h1>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="text-primary hover:text-primary/80 font-bold transition-colors disabled:opacity-50"
+            className="text-primary hover:text-primary/80 font-bold transition-colors disabled:opacity-50 text-sm"
           >
             {loading ? 'Saving...' : 'Save'}
           </button>
         </div>
       </header>
 
-      <main className="flex-1 pb-32">
-        <div className="max-w-xl md:max-w-4xl mx-auto px-6 py-10 space-y-12">
+      {/* Success message */}
+      {message && (
+        <div className="max-w-3xl mx-auto px-6 pt-4">
+          <div className={`p-4 rounded-xl text-sm font-medium ${message.includes('Error')
+              ? 'bg-destructive/10 text-destructive border border-destructive/20'
+              : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+            }`}>
+            {message}
+          </div>
+        </div>
+      )}
 
-          {onboarding && (
-            <div className="bg-primary/10 border border-primary/20 p-8 rounded-[2rem] space-y-3 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                <CloudLightning className="w-24 h-24 text-primary" />
+      <main className="max-w-3xl mx-auto px-6 py-8 space-y-10">
+        {/* Onboarding Banner */}
+        {onboarding && (
+          <div className="relative rounded-2xl overflow-hidden animate-fade-up grain">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent" />
+            <div className="absolute inset-0 opacity-20" style={{
+              backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)',
+              backgroundSize: '24px 24px'
+            }} />
+            <div className="relative p-8 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
               </div>
-              <h2 className="text-2xl font-black text-primary font-outfit italic tracking-tight">Let's get started!</h2>
-              <p className="text-muted-foreground font-bold leading-relaxed max-w-md">
+              <h2 className="text-2xl font-bold text-white font-syne">Welcome to Flow!</h2>
+              <p className="text-white/80 font-medium max-w-lg">
                 Complete your company profile to start creating professional invoices. This information will appear on your PDFs.
               </p>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Branding Section */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-2 text-muted-foreground font-bold uppercase tracking-widest text-[10px] ml-1">
-              <CloudLightning className="w-4 h-4" />
-              Branding
+        {/* Company Branding Section */}
+        <section className="space-y-5 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <Building2 className="w-4 h-4" />
+            <span className="text-[11px] font-bold uppercase tracking-widest">Company Branding</span>
+          </div>
+
+          <div className="card-premium divide-y divide-border">
+            {/* Company Name */}
+            <div className="p-6 space-y-3">
+              <label className="text-sm font-bold text-muted-foreground">Company Name</label>
+              <div className="relative">
+                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={settings.company_name}
+                  onChange={(e) => setSettings({ ...settings, company_name: e.target.value })}
+                  className="input-field pl-11"
+                  placeholder="Apex Remodeling LLC"
+                />
+              </div>
             </div>
 
-            <div className="bg-card rounded-3xl border border-border shadow-premium divide-y divide-border">
-              <div className="p-8 space-y-4">
-                <label className="text-sm font-bold text-muted-foreground block">Company Name</label>
+            {/* Email & Phone */}
+            <div className="grid grid-cols-1 md:grid-cols-2">
+              <div className="p-6 space-y-3">
+                <label className="text-sm font-bold text-muted-foreground">Email</label>
                 <div className="relative">
-                  <Building2 className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    type="email"
+                    value={settings.company_email}
+                    onChange={(e) => setSettings({ ...settings, company_email: e.target.value })}
+                    className="input-field pl-11"
+                    placeholder="hello@apex.com"
+                  />
+                </div>
+              </div>
+              <div className="p-6 space-y-3 md:border-l border-border">
+                <label className="text-sm font-bold text-muted-foreground">Phone</label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <input
                     type="text"
-                    value={settings.company_name}
-                    onChange={(e) => setSettings({ ...settings, company_name: e.target.value })}
-                    className="w-full h-14 pl-14 pr-6 bg-secondary border border-border rounded-2xl text-base font-bold text-foreground focus:bg-card focus:border-primary transition-all outline-none"
-                    placeholder="Apex Remodeling"
+                    value={settings.company_phone}
+                    onChange={(e) => setSettings({ ...settings, company_phone: e.target.value })}
+                    className="input-field pl-11"
+                    placeholder="(555) 000-0000"
                   />
                 </div>
               </div>
+            </div>
 
-              <div className="p-0 border-t border-border grid grid-cols-1 md:grid-cols-2">
-                <div className="p-8 space-y-4">
-                  <label className="text-sm font-bold text-muted-foreground block">Company Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="email"
-                      value={settings.company_email}
-                      onChange={(e) => setSettings({ ...settings, company_email: e.target.value })}
-                      className="w-full h-14 pl-14 pr-6 bg-secondary border border-border rounded-2xl text-base font-bold text-foreground focus:bg-card focus:border-primary transition-all outline-none"
-                      placeholder="hello@apex.com"
-                    />
-                  </div>
-                </div>
-                <div className="p-8 space-y-4 md:border-l border-border">
-                  <label className="text-sm font-bold text-muted-foreground block">Company Phone</label>
-                  <div className="relative">
-                    <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      value={settings.company_phone}
-                      onChange={(e) => setSettings({ ...settings, company_phone: e.target.value })}
-                      className="w-full h-14 pl-14 pr-6 bg-secondary border border-border rounded-2xl text-base font-bold text-foreground focus:bg-card focus:border-primary transition-all outline-none"
-                      placeholder="(555) 000-0000"
-                    />
-                  </div>
+            {/* Address */}
+            <div className="p-6 space-y-3">
+              <label className="text-sm font-bold text-muted-foreground">Address</label>
+              <div className="relative">
+                <MapPin className="absolute left-4 top-4 w-4 h-4 text-muted-foreground" />
+                <textarea
+                  value={settings.company_address}
+                  onChange={(e) => setSettings({ ...settings, company_address: e.target.value })}
+                  className="input-field pl-11 py-3 min-h-[100px] resize-none"
+                  placeholder="123 Builder St, Suite 100&#10;City, State 12345"
+                />
+              </div>
+            </div>
+
+            {/* Tax Rate */}
+            <div className="p-6 space-y-3">
+              <label className="text-sm font-bold text-muted-foreground">Default Tax Rate (%)</label>
+              <div className="relative">
+                <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="number"
+                  step="0.01"
+                  value={settings.default_tax_rate}
+                  onChange={(e) => setSettings({ ...settings, default_tax_rate: parseFloat(e.target.value) || 0 })}
+                  className="input-field pl-11"
+                  placeholder="8.25"
+                />
+              </div>
+            </div>
+
+            {/* Brand Color */}
+            <div className="p-6 space-y-5">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-muted-foreground">Brand Color</label>
+                <div className="flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-lg border border-border">
+                  <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: settings.brand_color }} />
+                  <span className="text-xs font-bold text-muted-foreground uppercase">{settings.brand_color}</span>
                 </div>
               </div>
 
-              <div className="p-8 space-y-4">
-                <label className="text-sm font-bold text-muted-foreground block">Company Address</label>
-                <div className="relative">
-                  <MapPin className="absolute left-6 top-6 w-4 h-4 text-muted-foreground" />
-                  <textarea
-                    value={settings.company_address}
-                    onChange={(e) => setSettings({ ...settings, company_address: e.target.value })}
-                    className="w-full min-h-[100px] pl-14 pr-6 py-5 bg-secondary border border-border rounded-2xl text-base font-bold text-foreground focus:bg-card focus:border-primary transition-all outline-none resize-none"
-                    placeholder="123 Builder St, City, State 12345"
-                  />
-                </div>
-              </div>
-
-              <div className="p-8 space-y-4 border-t border-border">
-                <label className="text-sm font-bold text-muted-foreground block">Default Tax Rate (%)</label>
-                <div className="relative">
-                  <Percent className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <div className="flex flex-wrap gap-3">
+                {swatches.map(color => <ColorSwatch key={color} color={color} />)}
+                <div className="relative group">
                   <input
-                    type="number"
-                    step="0.01"
-                    value={settings.default_tax_rate}
-                    onChange={(e) => setSettings({ ...settings, default_tax_rate: parseFloat(e.target.value) || 0 })}
-                    className="w-full h-14 pl-14 pr-6 bg-secondary border border-border rounded-2xl text-base font-bold text-foreground focus:bg-card focus:border-primary transition-all outline-none"
-                    placeholder="8.25"
-                  />
-                </div>
-              </div>
-
-              <div className="p-8 space-y-6">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-bold text-muted-foreground">Brand Color</label>
-                  <div className="bg-secondary px-3 py-1.5 rounded-xl border border-border flex items-center gap-2">
-                    <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: settings.brand_color }} />
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-tight">{settings.brand_color}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-4">
-                  {swatches.map(color => <ColorSwatch key={color} color={color} />)}
-                  <div className="relative group">
-                    <input
-                      type="color"
-                      value={settings.brand_color}
-                      onChange={(e) => setSettings({ ...settings, brand_color: e.target.value.toUpperCase() })}
-                      className="w-12 h-12 rounded-full border-4 border-card opacity-0 absolute inset-0 cursor-pointer z-10"
-                    />
-                    <div className="w-12 h-12 rounded-full border-2 border-dashed border-border flex items-center justify-center bg-secondary group-hover:bg-card transition-colors">
-                      <Plus className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="relative group mt-2">
-                  <Hash className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
+                    type="color"
                     value={settings.brand_color}
-                    onChange={(e) => setSettings({ ...settings, brand_color: e.target.value })}
-                    className="w-full h-14 pl-14 pr-6 bg-secondary border border-border rounded-2xl text-base font-bold text-foreground focus:bg-card focus:border-primary transition-all outline-none"
+                    onChange={(e) => setSettings({ ...settings, brand_color: e.target.value.toUpperCase() })}
+                    className="w-10 h-10 rounded-full opacity-0 absolute inset-0 cursor-pointer z-10"
                   />
+                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center bg-secondary group-hover:bg-card group-hover:border-primary/30 transition-all">
+                    <Plus className="w-4 h-4 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="p-8 space-y-4">
-                <label className="text-sm font-bold text-muted-foreground block">Company Logo</label>
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-border rounded-3xl p-10 flex flex-col items-center justify-center gap-4 bg-secondary/50 hover:bg-card hover:border-primary/30 transition-all cursor-pointer group relative overflow-hidden"
-                >
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleLogoUpload}
-                  />
-                  {settings.logo_url ? (
-                    <>
-                      <img src={settings.logo_url} alt="Company Logo" className="h-32 object-contain relative z-10" />
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-20">
-                        <p className="text-xs font-bold text-foreground bg-card px-3 py-1.5 rounded-full shadow-sm">Change Logo</p>
-                      </div>
-                    </>
+            {/* Logo Upload */}
+            <div className="p-6 space-y-3">
+              <label className="text-sm font-bold text-muted-foreground">Company Logo</label>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="border-2 border-dashed border-border rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-secondary/30 hover:bg-card hover:border-primary/30 transition-all cursor-pointer group relative overflow-hidden"
+              >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleLogoUpload}
+                />
+                {settings.logo_url ? (
+                  <>
+                    <img src={settings.logo_url} alt="Company Logo" className="h-24 object-contain relative z-10" />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-20">
+                      <p className="text-xs font-bold text-foreground bg-card px-4 py-2 rounded-lg shadow-sm">Change Logo</p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Upload className="w-7 h-7 text-primary" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-bold text-foreground">Click to upload</p>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">PNG, JPG up to 5MB</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Account Section */}
+        <section className="space-y-5 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <User className="w-4 h-4" />
+            <span className="text-[11px] font-bold uppercase tracking-widest">Account</span>
+          </div>
+
+          <div className="space-y-3">
+            <div className="card-premium p-5 flex items-center justify-between hover:bg-secondary/30 transition-colors cursor-pointer group">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl overflow-hidden flex items-center justify-center border border-border">
+                  {user?.user_metadata?.avatar_url ? (
+                    <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <>
-                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Upload className="w-8 h-8 text-primary" />
-                      </div>
-                      <div className="text-center">
-                        <p className="text-base font-bold text-foreground">Tap to upload</p>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">PNG, JPG up to 5MB</p>
-                      </div>
-                    </>
+                    <User className="w-6 h-6 text-primary" />
                   )}
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Account Section */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-2 text-muted-foreground font-bold uppercase tracking-widest text-[10px] ml-1">
-              <User className="w-4 h-4" />
-              Account
-            </div>
-
-            <div className="space-y-4">
-              <div className="bg-card rounded-3xl border border-border shadow-premium p-6 flex items-center justify-between hover:bg-secondary/50 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-secondary rounded-full flex items-center justify-center border-2 border-card shadow-sm overflow-hidden">
-                    {user?.user_metadata?.avatar_url ? (
-                      <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-7 h-7 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground text-lg">{user?.user_metadata?.full_name || 'Business Owner'}</h4>
-                    <p className="text-sm font-medium text-muted-foreground tracking-tight">{user?.email}</p>
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-foreground transition-colors" />
-              </div>
-
-              <div className="bg-card rounded-3xl border border-border shadow-premium p-6 flex items-center justify-between hover:bg-secondary/50 transition-colors cursor-pointer group">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 bg-indigo-500/10 rounded-2xl flex items-center justify-center">
-                    <Lock className="w-7 h-7 text-indigo-500" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground text-lg">Change Password</h4>
-                    <p className="text-sm font-medium text-muted-foreground tracking-tight">Protect your account</p>
-                  </div>
-                </div>
-                <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-foreground transition-colors" />
-              </div>
-            </div>
-          </section>
-
-          {/* Preferences Section */}
-          <section className="space-y-6">
-            <div className="flex items-center gap-2 text-muted-foreground font-bold uppercase tracking-widest text-[10px] ml-1">
-              <SettingsIcon className="w-4 h-4" />
-              Preferences
-            </div>
-
-            <div className="bg-card rounded-3xl border border-border shadow-premium divide-y divide-border overflow-hidden">
-              <div className="p-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-orange-500/10 rounded-2xl flex items-center justify-center">
-                    <Bell className="w-6 h-6 text-orange-500" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground">Email Notifications</h4>
-                    <p className="text-xs font-medium text-muted-foreground tracking-tight">Invoices & Updates</p>
-                  </div>
-                </div>
-                <div className="w-14 h-8 bg-primary rounded-full relative cursor-pointer">
-                  <div className="absolute right-1 top-1 w-6 h-6 bg-primary-foreground rounded-full shadow-sm" />
+                <div>
+                  <h4 className="font-bold text-foreground">{user?.user_metadata?.full_name || 'Business Owner'}</h4>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
                 </div>
               </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-foreground transition-colors" />
+            </div>
 
-              <div className="p-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-foreground rounded-2xl flex items-center justify-center">
-                    <Moon className="w-6 h-6 text-background" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-foreground">Dark Mode</h4>
-                    <p className="text-xs font-medium text-muted-foreground tracking-tight">Experimental</p>
-                  </div>
+            <div className="card-premium p-5 flex items-center justify-between hover:bg-secondary/30 transition-colors cursor-pointer group">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
+                  <Lock className="w-6 h-6 text-violet-500" />
                 </div>
-                <div className="w-14 h-8 bg-secondary rounded-full relative cursor-pointer">
-                  <div className="absolute left-1 top-1 w-6 h-6 bg-card rounded-full shadow-sm shadow-black/10" />
+                <div>
+                  <h4 className="font-bold text-foreground">Change Password</h4>
+                  <p className="text-sm text-muted-foreground">Protect your account</p>
                 </div>
               </div>
+              <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-foreground transition-colors" />
             </div>
-          </section>
-
-          <button
-            onClick={handleSignOut}
-            className="w-full h-16 bg-destructive/10 text-destructive font-bold rounded-2xl hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
-          >
-            Sign Out
-          </button>
-
-          <div className="text-center pt-8 border-t border-border">
-            <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.2em]">Version 1.2.0 (Build 472)</p>
           </div>
+        </section>
+
+        {/* Preferences Section */}
+        <section className="space-y-5 animate-fade-up" style={{ animationDelay: '0.3s' }}>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <SettingsIcon className="w-4 h-4" />
+            <span className="text-[11px] font-bold uppercase tracking-widest">Preferences</span>
+          </div>
+
+          <div className="card-premium divide-y divide-border">
+            <div className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center">
+                  <Bell className="w-6 h-6 text-amber-500" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-foreground">Email Notifications</h4>
+                  <p className="text-sm text-muted-foreground">Invoices & updates</p>
+                </div>
+              </div>
+              <div className="w-12 h-7 bg-primary rounded-full relative cursor-pointer">
+                <div className="absolute right-1 top-1 w-5 h-5 bg-primary-foreground rounded-full shadow-sm" />
+              </div>
+            </div>
+
+            <div className="p-5 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center">
+                  <Moon className="w-6 h-6 text-background" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-foreground">Dark Mode</h4>
+                  <p className="text-sm text-muted-foreground">Use theme toggle</p>
+                </div>
+              </div>
+              <div className="w-12 h-7 bg-secondary rounded-full relative cursor-pointer border border-border">
+                <div className="absolute left-1 top-1 w-5 h-5 bg-card rounded-full shadow-sm" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Sign Out */}
+        <button
+          onClick={handleSignOut}
+          className="w-full h-14 bg-destructive/10 text-destructive font-bold rounded-xl hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2 animate-fade-up"
+          style={{ animationDelay: '0.4s' }}
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
+
+        {/* Version */}
+        <div className="text-center pt-4 border-t border-border animate-fade-up" style={{ animationDelay: '0.5s' }}>
+          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Flow v2.0.0 • Copper Edition</p>
         </div>
       </main>
     </div>

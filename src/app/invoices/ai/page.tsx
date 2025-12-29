@@ -3,15 +3,17 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { 
-  Send, 
-  Zap, 
-  Plus, 
+import {
+  Send,
+  Hammer,
   Sparkles,
   FileText,
   User as UserIcon,
   ArrowLeft,
-  Mic
+  Mic,
+  Wrench,
+  Home,
+  Bath
 } from 'lucide-react'
 
 interface Message {
@@ -107,9 +109,9 @@ export default function AIInvoicePage() {
       }
     } catch (error) {
       console.error('Chat error:', error)
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: 'Sorry, I encountered an error. Please try again.' 
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, I encountered an error. Please try again.'
       }])
     } finally {
       setIsLoading(false)
@@ -131,7 +133,7 @@ export default function AIInvoicePage() {
 
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     const recognition = new SpeechRecognition()
-    
+
     recognition.continuous = false
     recognition.interimResults = false
     recognition.lang = 'en-US'
@@ -158,9 +160,9 @@ export default function AIInvoicePage() {
   }
 
   const quickActions = [
-    { label: 'Kitchen Remodel', icon: Sparkles },
-    { label: 'Bathroom Renovation', icon: Sparkles },
-    { label: 'New Client Invoice', icon: FileText },
+    { label: 'Kitchen Remodel', icon: Home, prompt: 'Create an invoice for a kitchen remodel' },
+    { label: 'Bathroom Renovation', icon: Bath, prompt: 'Create an invoice for a bathroom renovation' },
+    { label: 'General Repairs', icon: Wrench, prompt: 'Create an invoice for general home repairs' },
   ]
 
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there'
@@ -168,22 +170,22 @@ export default function AIInvoicePage() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="bg-card border-b border-border h-16 flex items-center px-6 sticky top-0 z-30">
+      <header className="bg-card/80 backdrop-blur-xl border-b border-border h-16 flex items-center px-6 sticky top-0 z-30">
         <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-          <button 
-            onClick={() => router.push('/invoices')} 
-            className="p-2 hover:bg-secondary rounded-full transition-colors flex items-center gap-2 text-muted-foreground"
+          <button
+            onClick={() => router.push('/invoices')}
+            className="p-2 hover:bg-secondary rounded-xl transition-colors flex items-center gap-2 text-muted-foreground group"
           >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">Back to Invoices</span>
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-sm font-medium">Back</span>
           </button>
-          <div className="flex items-center gap-2">
-            <div className="bg-yellow-400 p-1.5 rounded-lg border-2 border-slate-900">
-              <Zap className="w-4 h-4 text-slate-900 fill-slate-900" />
+          <div className="flex items-center gap-2.5">
+            <div className="bg-gradient-to-br from-violet-500 to-purple-600 p-2 rounded-xl shadow-lg shadow-violet-500/20">
+              <Sparkles className="w-4 h-4 text-white" />
             </div>
-            <span className="font-bold text-foreground">AI Invoice</span>
+            <span className="font-bold text-foreground font-syne">AI Invoice</span>
           </div>
-          <div className="w-24" />
+          <div className="w-20" />
         </div>
       </header>
 
@@ -191,58 +193,70 @@ export default function AIInvoicePage() {
       <main className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-6">
         {messages.length === 0 ? (
           /* Welcome State */
-          <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-8">
-            <div className="flex items-center gap-3">
-              <div className="bg-gradient-to-br from-blue-500 to-violet-500 p-3 rounded-xl">
-                <Sparkles className="w-6 h-6 text-white" />
+          <div className="flex-1 flex flex-col items-center justify-center py-16 space-y-10 animate-fade-up">
+            {/* Logo */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/30 to-purple-600/30 rounded-2xl blur-xl" />
+              <div className="relative bg-gradient-to-br from-violet-500 to-purple-600 p-4 rounded-2xl shadow-xl">
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
-              <span className="text-lg font-bold text-muted-foreground">Hi {firstName}</span>
             </div>
-            
-            <h1 className="text-4xl md:text-5xl font-light text-foreground text-center leading-tight max-w-2xl">
-              What invoice can I help you <br className="hidden md:block" />create today?
-            </h1>
+
+            {/* Greeting */}
+            <div className="text-center space-y-3">
+              <p className="text-lg font-semibold text-muted-foreground">Hi {firstName} 👋</p>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground font-syne tracking-tight leading-tight">
+                What invoice can I help
+                <br />
+                <span className="text-gradient">you create today?</span>
+              </h1>
+            </div>
 
             {/* Quick Actions */}
-            <div className="flex flex-wrap justify-center gap-3 pt-8">
+            <div className="flex flex-wrap justify-center gap-3 pt-4">
               {quickActions.map((action) => (
                 <button
                   key={action.label}
-                  onClick={() => setInput(`Create an invoice for a ${action.label.toLowerCase()}`)}
-                  className="flex items-center gap-2 px-5 py-3 bg-card border border-border rounded-full text-sm font-medium text-foreground hover:bg-secondary transition-all"
+                  onClick={() => setInput(action.prompt)}
+                  className="flex items-center gap-2.5 px-5 py-3 bg-card border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-secondary hover:border-primary/20 transition-all group"
                 >
-                  <action.icon className="w-4 h-4 text-muted-foreground" />
+                  <action.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   {action.label}
                 </button>
               ))}
             </div>
+
+            {/* Tip */}
+            <p className="text-sm text-muted-foreground max-w-md text-center">
+              Describe the work you've completed and I'll generate a professional invoice for you.
+            </p>
           </div>
         ) : (
           /* Messages */
-          <div className="flex-1 py-8 space-y-6 overflow-y-auto">
+          <div className="flex-1 py-8 space-y-5 overflow-y-auto">
             {messages.map((message, i) => (
               <div
                 key={i}
-                className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-3 animate-fade-up ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                style={{ animationDelay: `${i * 0.05}s` }}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center flex-shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/20">
                     <Sparkles className="w-4 h-4 text-white" />
                   </div>
                 )}
                 <div
-                  className={`max-w-[75%] px-5 py-3 rounded-2xl text-sm leading-relaxed ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground rounded-br-md shadow-lg shadow-primary/10'
+                  className={`max-w-[75%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed ${message.role === 'user'
+                      ? 'bg-primary text-primary-foreground rounded-br-md shadow-lg shadow-primary/20'
                       : 'bg-card border border-border text-foreground rounded-bl-md shadow-sm'
-                  }`}
+                    }`}
                 >
                   {message.content.includes('```invoice_data') ? (
                     <div className="space-y-3">
-                      <p>I've prepared your invoice data. Redirecting you to the invoice form...</p>
+                      <p className="font-medium">Perfect! I've prepared your invoice data.</p>
                       <div className="flex items-center gap-2 text-emerald-500">
                         <div className="w-4 h-4 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs font-medium">Creating invoice...</span>
+                        <span className="text-xs font-bold">Redirecting to invoice form...</span>
                       </div>
                     </div>
                   ) : (
@@ -250,7 +264,7 @@ export default function AIInvoicePage() {
                   )}
                 </div>
                 {message.role === 'user' && (
-                  <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-secondary to-secondary/50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-border">
                     {user?.user_metadata?.avatar_url ? (
                       <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -260,16 +274,22 @@ export default function AIInvoicePage() {
                 )}
               </div>
             ))}
+
+            {/* Loading indicator */}
             {isLoading && messages[messages.length - 1]?.role === 'user' && (
-              <div className="flex gap-4">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center">
+              <div className="flex gap-3 animate-fade-up">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-card border border-border px-5 py-3 rounded-2xl rounded-bl-md shadow-sm">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-muted-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                    <div className="w-2 h-2 bg-muted-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                    <div className="w-2 h-2 bg-muted-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="bg-card border border-border px-5 py-4 rounded-2xl rounded-bl-md shadow-sm">
+                  <div className="flex items-center gap-1.5">
+                    {[0, 1, 2].map(i => (
+                      <div
+                        key={i}
+                        className="w-2 h-2 bg-violet-500/50 rounded-full animate-bounce"
+                        style={{ animationDelay: `${i * 0.15}s` }}
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
@@ -280,40 +300,44 @@ export default function AIInvoicePage() {
       </main>
 
       {/* Input Area */}
-      <footer className="sticky bottom-0 bg-background pt-4 pb-8 px-6">
+      <footer className="sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-8 px-6">
         <div className="max-w-4xl mx-auto">
-           <form onSubmit={handleSubmit} className="relative">
-            <div className="bg-card border border-border rounded-3xl shadow-lg overflow-hidden focus-within:border-primary/50 focus-within:shadow-xl transition-all">
+          <form onSubmit={handleSubmit} className="relative">
+            <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden focus-within:border-violet-500/50 focus-within:shadow-2xl focus-within:shadow-violet-500/5 transition-all">
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Describe the work you did..."
+                placeholder="Describe the work you completed..."
                 rows={1}
-                className="w-full px-6 py-4 text-base text-foreground placeholder:text-muted-foreground/50 outline-none resize-none bg-transparent"
-                style={{ minHeight: '56px', maxHeight: '200px' }}
+                className="w-full px-5 py-4 text-[15px] text-foreground placeholder:text-muted-foreground/50 outline-none resize-none bg-transparent font-medium"
+                style={{ minHeight: '56px', maxHeight: '160px' }}
               />
-              <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-                <button 
-                  type="button" 
+              <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-secondary/30">
+                <button
+                  type="button"
                   onClick={handleMicClick}
-                  className={`p-2.5 rounded-full transition-all ${isListening ? 'bg-red-500 text-white animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}`}
+                  className={`p-2.5 rounded-xl transition-all ${isListening
+                      ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                    }`}
                 >
                   <Mic className="w-5 h-5" />
                 </button>
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className="p-2.5 bg-primary text-primary-foreground rounded-full disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-all"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-all shadow-lg shadow-violet-500/20 font-semibold text-sm"
                 >
                   <Send className="w-4 h-4" />
+                  <span className="hidden sm:inline">Send</span>
                 </button>
               </div>
             </div>
           </form>
-          <p className="text-center text-xs text-muted-foreground mt-3">
-            AI can make mistakes. Review invoice details before sending.
+          <p className="text-center text-xs text-muted-foreground mt-4">
+            AI can make mistakes. Review invoice details before sending to clients.
           </p>
         </div>
       </footer>

@@ -1,23 +1,26 @@
-import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
+import { Syne, DM_Sans } from 'next/font/google'
 import AppShell from '@/components/layout/AppShell'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import './globals.css'
 
-const jakarta = Plus_Jakarta_Sans({ 
+const syne = Syne({
   subsets: ['latin'],
-  variable: '--font-jakarta',
+  variable: '--font-syne',
   display: 'swap',
+  weight: ['400', '500', '600', '700', '800'],
 })
 
-const outfit = Outfit({ 
+const dmSans = DM_Sans({
   subsets: ['latin'],
-  variable: '--font-outfit',
+  variable: '--font-dm-sans',
   display: 'swap',
+  weight: ['400', '500', '600', '700'],
 })
 
 export const metadata = {
-  title: 'Remodeling Invoicing',
-  description: 'Professional invoicing for remodelers',
+  title: 'Flow | Professional Invoicing for Remodelers',
+  description: 'The modern invoicing platform designed for remodeling professionals. Create stunning invoices, manage clients, and grow your business.',
+  keywords: 'invoicing, remodeling, contractor, construction, billing',
 }
 
 export default function RootLayout({
@@ -26,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${outfit.variable}`} suppressHydrationWarning>
-      <body className="font-jakarta min-h-screen bg-background text-foreground antialiased selection:bg-primary/10 selection:text-primary">
+    <html lang="en" className={`${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
+      <body className="font-dm-sans min-h-screen bg-background text-foreground antialiased">
         <ThemeProvider>
           <AppShell>
             {children}
@@ -37,4 +40,3 @@ export default function RootLayout({
     </html>
   )
 }
-
