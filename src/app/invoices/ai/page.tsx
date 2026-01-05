@@ -168,9 +168,9 @@ export default function AIInvoicePage() {
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'there'
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-card/80 backdrop-blur-xl border-b border-border h-16 flex items-center px-6 sticky top-0 z-30">
+      <header className="h-16 flex items-center px-6 sticky top-0 z-30">
         <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
           <button
             onClick={() => router.push('/invoices')}
@@ -218,7 +218,7 @@ export default function AIInvoicePage() {
                 <button
                   key={action.label}
                   onClick={() => setInput(action.prompt)}
-                  className="flex items-center gap-2.5 px-5 py-3 bg-card border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-secondary hover:border-primary/20 transition-all group"
+                  className="flex items-center gap-2.5 px-5 py-3 bg-transparent border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-secondary hover:border-primary/20 transition-all group"
                 >
                   <action.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   {action.label}
@@ -246,10 +246,11 @@ export default function AIInvoicePage() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[75%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed ${message.role === 'user'
+                  className={`max-w-[75%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed ${
+                    message.role === 'user'
                       ? 'bg-primary text-primary-foreground rounded-br-md shadow-lg shadow-primary/20'
-                      : 'bg-card border border-border text-foreground rounded-bl-md shadow-sm'
-                    }`}
+                      : 'bg-secondary/30 backdrop-blur-sm text-foreground rounded-bl-md'
+                  }`}
                 >
                   {message.content.includes('```invoice_data') ? (
                     <div className="space-y-3">
@@ -281,7 +282,7 @@ export default function AIInvoicePage() {
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-card border border-border px-5 py-4 rounded-2xl rounded-bl-md shadow-sm">
+                <div className="bg-secondary/30 backdrop-blur-sm px-5 py-4 rounded-2xl rounded-bl-md">
                   <div className="flex items-center gap-1.5">
                     {[0, 1, 2].map(i => (
                       <div
@@ -300,10 +301,10 @@ export default function AIInvoicePage() {
       </main>
 
       {/* Input Area */}
-      <footer className="sticky bottom-0 bg-gradient-to-t from-background via-background to-transparent pt-6 pb-8 px-6">
+      <footer className="sticky bottom-0 pt-6 pb-8 px-6">
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="relative">
-            <div className="bg-card border border-border rounded-2xl shadow-xl overflow-hidden focus-within:border-violet-500/50 focus-within:shadow-2xl focus-within:shadow-violet-500/5 transition-all">
+            <div className="bg-card/50 backdrop-blur-xl border border-border rounded-2xl shadow-2xl overflow-hidden focus-within:border-primary/50 transition-all">
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -314,7 +315,7 @@ export default function AIInvoicePage() {
                 className="w-full px-5 py-4 text-[15px] text-foreground placeholder:text-muted-foreground/50 outline-none resize-none bg-transparent font-medium"
                 style={{ minHeight: '56px', maxHeight: '160px' }}
               />
-              <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-secondary/30">
+              <div className="flex items-center justify-between px-4 py-3 border-t border-border bg-transparent">
                 <button
                   type="button"
                   onClick={handleMicClick}
