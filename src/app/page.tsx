@@ -198,7 +198,7 @@ export default function DashboardPage() {
     delay: number
   }) => (
     <div
-      className="card-premium card-diagonal p-6 animate-fade-up shadow-sm hover:shadow-md"
+      className="card-premium p-6 animate-fade-up shadow-sm hover:shadow-md"
       style={{ animationDelay: `${delay}s` }}
     >
       <div className="flex justify-between items-start mb-6">

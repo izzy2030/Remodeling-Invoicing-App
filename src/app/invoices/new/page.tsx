@@ -18,8 +18,20 @@ import {
   Pencil,
   Info,
   FileText,
-  DollarSign
+  DollarSign,
+  User,
+  MoreVertical,
+  Loader2,
+  X,
+  CreditCard,
+  Building2,
+  MapPin,
+  Phone,
+  Sparkles
 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
 
 export default function NewInvoicePage() {
   const router = useRouter()
@@ -58,7 +70,6 @@ export default function NewInvoicePage() {
 
     if (clientsRes.data) setClients(clientsRes.data)
     if (settingsRes.data) {
-      // Check if setup is needed
       if (!settingsRes.data.company_name) {
         router.push('/settings?onboarding=true')
         return
@@ -72,14 +83,10 @@ export default function NewInvoicePage() {
         notes: settingsRes.data.default_notes ?? ''
       }))
     } else {
-      // No settings row exists yet
       router.push('/settings?onboarding=true')
       return
     }
 
-    // Check for AI-generated invoice data
-
-    // Check for AI-generated invoice data
     const aiData = sessionStorage.getItem('ai_invoice_data')
     if (aiData) {
       try {
@@ -160,7 +167,6 @@ export default function NewInvoicePage() {
       })))
     }
 
-    // Auto-advance to step 2 if we got items
     if ((aiData.labor_items?.length || 0) + (aiData.material_items?.length || 0) > 0) {
       setStep(2)
     }
@@ -199,7 +205,6 @@ export default function NewInvoicePage() {
       materials_line2_amount: material2Combined.amount,
     }
 
-    // Get current user for RLS
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -214,6 +219,7 @@ export default function NewInvoicePage() {
     }])
 
     if (error) {
+      console.error(error)
       alert('Error creating invoice')
     } else {
       await supabase.from('settings').update({ next_invoice_number: settings.next_invoice_number + 1 }).eq('id', 1)
@@ -231,9 +237,9 @@ export default function NewInvoicePage() {
           <span className="text-sm font-bold text-foreground">Step {current} of {total}</span>
           <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{label}</span>
         </div>
-        <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
+        <div className="h-2 bg-secondary rounded-full overflow-hidden shadow-inner">
           <div
-            className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-500 ease-out rounded-full"
+            className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-700 ease-in-out rounded-full"
             style={{ width: `${(current / total) * 100}%` }}
           />
         </div>
@@ -242,20 +248,20 @@ export default function NewInvoicePage() {
   )
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Header */}
-      <header className="bg-card/80 backdrop-blur-xl border-b border-border h-16 flex items-center px-6 sticky top-0 z-30">
+      <header className="bg-card/80 backdrop-blur-xl border-b border-border h-20 flex items-center px-6 sticky top-0 z-40">
         <div className="max-w-3xl mx-auto w-full flex items-center justify-between">
-          <button onClick={() => router.back()} className="p-2 hover:bg-secondary rounded-xl transition-colors group">
-            <ChevronLeft className="w-5 h-5 text-foreground group-hover:-translate-x-1 transition-transform" />
-          </button>
-          <div className="flex items-center gap-2">
-            <FileText className="w-5 h-5 text-primary" />
-            <h1 className="text-lg font-bold text-foreground font-syne">New Invoice</h1>
+          <Button variant="secondary" size="icon" onClick={() => router.back()} className="rounded-xl h-11 w-11 shadow-sm group">
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+          </Button>
+          <div className="flex flex-col items-center">
+            <h1 className="text-xl font-bold text-foreground font-syne tracking-tight">New Invoice</h1>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{invoice.invoice_number}</p>
           </div>
-          <button onClick={() => router.back()} className="text-muted-foreground hover:text-foreground font-semibold transition-colors text-sm">
+          <Button variant="ghost" onClick={() => router.back()} className="font-bold text-muted-foreground hover:text-foreground">
             Cancel
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -263,7 +269,7 @@ export default function NewInvoicePage() {
       <StepIndicator
         current={step}
         total={3}
-        label={step === 1 ? 'Details' : step === 2 ? 'Line Items' : 'Review'}
+        label={step === 1 ? 'Job Details' : step === 2 ? 'Line Items' : 'Submission'}
       />
 
       {/* Main Content */}
@@ -274,62 +280,51 @@ export default function NewInvoicePage() {
           {step === 1 && (
             <div className="space-y-8 animate-fade-up">
               <div>
-                <h2 className="text-2xl font-bold text-foreground font-syne">Invoice Details</h2>
-                <p className="text-muted-foreground text-sm mt-1">Set up the basic information for this invoice.</p>
+                <h2 className="text-3xl font-bold text-foreground font-syne tracking-tight">Invoice Details</h2>
+                <p className="text-muted-foreground font-medium mt-1">Set up the basic information for this invoice.</p>
               </div>
 
-              <div className="card-premium p-6 space-y-6">
+              <div className="card-premium p-8 space-y-6">
                 {/* Client Selection */}
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-muted-foreground">Client</label>
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Client Name</label>
                   <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
                     <select
                       value={invoice.client_id}
                       onChange={(e) => setInvoice({ ...invoice, client_id: e.target.value })}
-                      className="input-field appearance-none pr-12"
+                      className="input-field appearance-none pl-12 pr-12 h-14"
                     >
                       <option value="">Select a client...</option>
                       {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Invoice Number */}
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-muted-foreground">Invoice Number</label>
-                  <div className="relative">
-                    <Hash className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      type="text"
-                      value={invoice.invoice_number}
-                      readOnly
-                      className="input-field pl-11 bg-secondary cursor-not-allowed"
-                    />
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none opacity-50" />
                   </div>
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-muted-foreground">Issue Date</label>
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Issue Date</label>
                     <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground" />
                       <input
                         type="date"
                         value={invoice.invoice_date}
                         onChange={(e) => setInvoice({ ...invoice, invoice_date: e.target.value })}
-                        className="input-field"
+                        className="input-field pl-12 h-14"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-muted-foreground">Due Date</label>
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Due Date</label>
                     <div className="relative">
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground" />
                       <input
                         type="date"
                         value={invoice.due_date}
                         onChange={(e) => setInvoice({ ...invoice, due_date: e.target.value })}
-                        className="input-field"
+                        className="input-field pl-12 h-14"
                       />
                     </div>
                   </div>
@@ -337,12 +332,12 @@ export default function NewInvoicePage() {
               </div>
 
               {/* Info Box */}
-              <div className="flex items-center gap-4 p-5 bg-secondary/50 border border-border rounded-xl">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <Info className="w-5 h-5 text-primary" />
+              <div className="flex items-center gap-5 p-6 bg-secondary/40 border border-border/60 rounded-3xl group">
+                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20 group-hover:scale-105 transition-transform">
+                  <Info className="w-6 h-6 text-primary" />
                 </div>
-                <p className="text-sm text-muted-foreground font-medium">
-                  You'll add labor and material line items in the next step.
+                <p className="text-sm text-foreground font-semibold leading-relaxed">
+                  Tip: You can use the AI Assistant at any time to automatically generate these details from your messy notes.
                 </p>
               </div>
             </div>
@@ -350,63 +345,68 @@ export default function NewInvoicePage() {
 
           {/* Step 2: Line Items */}
           {step === 2 && (
-            <div className="space-y-6 animate-fade-up">
+            <div className="space-y-8 animate-fade-up">
               {/* Labor Section */}
               <div className="card-premium overflow-hidden">
-                <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-blue-500/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center">
+                <div className="px-8 py-5 border-b border-border flex items-center justify-between bg-blue-500/5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-500/20">
                       <Wrench className="w-5 h-5 text-blue-500" />
                     </div>
-                    <h2 className="font-bold text-foreground">Labor</h2>
+                    <div>
+                      <h2 className="font-bold text-foreground text-lg">Labor Fees</h2>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Work & Services</p>
+                    </div>
                   </div>
-                  <button
+                  <Button
                     onClick={addLaborItem}
-                    className="w-9 h-9 bg-blue-500 text-white rounded-lg flex items-center justify-center hover:bg-blue-600 transition-colors shadow-lg shadow-blue-500/20"
+                    size="icon"
+                    className="h-10 w-10 bg-blue-500 hover:bg-blue-600 shadow-lg shadow-blue-500/20 rounded-xl"
                   >
                     <Plus className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
 
-                <div className="divide-y divide-border">
+                <div className="divide-y divide-border/60">
                   {laborItems.map((item, index) => (
-                    <div key={index} className={`p-5 transition-all ${item.isEditing ? 'bg-blue-500/5' : 'hover:bg-secondary/30'}`}>
+                    <div key={index} className={`p-6 transition-all ${item.isEditing ? 'bg-blue-500/[0.03]' : 'hover:bg-secondary/20'}`}>
                       {item.isEditing ? (
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                           <input
                             autoFocus
-                            placeholder="Description (e.g., Kitchen demolition)"
+                            placeholder="Describe the task (e.g., Master Bathroom Demolition)"
                             value={item.description}
                             onChange={(e) => updateLaborItem(index, { description: e.target.value })}
-                            className="w-full text-base font-semibold text-foreground bg-transparent border-b-2 border-blue-500/30 focus:border-blue-500 outline-none py-2"
+                            className="w-full text-lg font-bold text-foreground bg-transparent border-b-2 border-blue-500/20 focus:border-blue-500 outline-none py-2 placeholder:text-muted-foreground/40"
                           />
-                          <div className="flex items-end gap-4">
+                          <div className="flex items-end gap-6">
                             <div className="flex-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Amount</label>
-                              <div className="relative mt-1">
-                                <DollarSign className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Fee Amount</label>
+                              <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
                                 <input
                                   type="number"
                                   placeholder="0.00"
                                   value={item.amount || ''}
                                   onChange={(e) => updateLaborItem(index, { amount: parseFloat(e.target.value) || 0 })}
-                                  className="w-full pl-5 py-2 text-xl font-bold text-blue-500 bg-transparent outline-none"
+                                  className="w-full pl-8 py-3 text-2xl font-bold text-blue-500 bg-secondary/50 rounded-xl border border-blue-500/10 focus:border-blue-500 focus:bg-white transition-all outline-none"
                                 />
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <button
+                              <Button
                                 onClick={() => updateLaborItem(index, { isEditing: false })}
-                                className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                                className="h-14 w-14 bg-blue-500 hover:bg-blue-600 rounded-xl"
                               >
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button
+                                <Check className="w-5 h-5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
                                 onClick={() => removeLaborItem(index)}
-                                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                                className="h-14 w-14 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-xl"
                               >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                                <Trash2 className="w-5 h-5" />
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -415,85 +415,87 @@ export default function NewInvoicePage() {
                           className="flex items-center justify-between cursor-pointer group"
                           onClick={() => updateLaborItem(index, { isEditing: true })}
                         >
-                          <div>
-                            <h3 className="font-bold text-foreground">{item.description || 'Untitled'}</h3>
-                            <span className="text-xs font-semibold text-muted-foreground bg-secondary px-2 py-0.5 rounded mt-1 inline-block">Labor</span>
+                          <div className="flex items-center gap-4">
+                             <div className="w-2 h-2 rounded-full bg-blue-500/40 group-hover:scale-150 transition-transform" />
+                             <div>
+                               <h3 className="font-bold text-foreground text-[15px] group-hover:text-blue-500 transition-colors uppercase tracking-tight">{item.description || 'Unnamed Labor task'}</h3>
+                               <p className="text-[10px] font-bold text-muted-foreground tracking-widest mt-0.5 opacity-60">Labor Item</p>
+                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-lg font-bold text-foreground">${(item.amount || 0).toFixed(2)}</span>
-                            <Pencil className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary transition-colors" />
+                          <div className="flex items-center gap-6">
+                            <span className="text-xl font-bold font-syne text-foreground tracking-tight">${(item.amount || 0).toLocaleString()}</span>
+                            <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                               <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                            </div>
                           </div>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
-
-                <button
-                  onClick={addLaborItem}
-                  className="w-full py-4 text-blue-500 font-semibold hover:bg-blue-500/5 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Labor Item
-                </button>
               </div>
 
               {/* Materials Section */}
               <div className="card-premium overflow-hidden">
-                <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-violet-500/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-violet-500/10 rounded-xl flex items-center justify-center">
+                <div className="px-8 py-5 border-b border-border flex items-center justify-between bg-violet-500/5">
+                  <div className="flex items-center gap-4">
+                    <div className="w-11 h-11 bg-violet-500/10 rounded-2xl flex items-center justify-center border border-violet-500/20">
                       <Package className="w-5 h-5 text-violet-500" />
                     </div>
-                    <h2 className="font-bold text-foreground">Materials</h2>
+                    <div>
+                      <h2 className="font-bold text-foreground text-lg">Materials</h2>
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Inventory & Parts</p>
+                    </div>
                   </div>
-                  <button
+                  <Button
                     onClick={addMaterialItem}
-                    className="w-9 h-9 bg-violet-500 text-white rounded-lg flex items-center justify-center hover:bg-violet-600 transition-colors shadow-lg shadow-violet-500/20"
+                    size="icon"
+                    className="h-10 w-10 bg-violet-500 hover:bg-violet-600 shadow-lg shadow-violet-500/20 rounded-xl"
                   >
                     <Plus className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
 
-                <div className="divide-y divide-border">
+                <div className="divide-y divide-border/60">
                   {materialItems.map((item, index) => (
-                    <div key={index} className={`p-5 transition-all ${item.isEditing ? 'bg-violet-500/5' : 'hover:bg-secondary/30'}`}>
+                    <div key={index} className={`p-6 transition-all ${item.isEditing ? 'bg-violet-500/[0.03]' : 'hover:bg-secondary/20'}`}>
                       {item.isEditing ? (
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                           <input
                             autoFocus
-                            placeholder="Material name (e.g., Flooring tiles)"
+                            placeholder="Material name (e.g., 50sqft Porcelain Tile)"
                             value={item.description}
                             onChange={(e) => updateMaterialItem(index, { description: e.target.value })}
-                            className="w-full text-base font-semibold text-foreground bg-transparent border-b-2 border-violet-500/30 focus:border-violet-500 outline-none py-2"
+                            className="w-full text-lg font-bold text-foreground bg-transparent border-b-2 border-violet-500/20 focus:border-violet-500 outline-none py-2 placeholder:text-muted-foreground/40"
                           />
-                          <div className="flex items-end gap-4">
+                          <div className="flex items-end gap-6">
                             <div className="flex-1">
-                              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Total Price</label>
-                              <div className="relative mt-1">
-                                <DollarSign className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                              <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block mb-1.5 ml-1">Total Cost</label>
+                              <div className="relative">
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-violet-500" />
                                 <input
                                   type="number"
                                   placeholder="0.00"
                                   value={item.amount || ''}
                                   onChange={(e) => updateMaterialItem(index, { amount: parseFloat(e.target.value) || 0 })}
-                                  className="w-full pl-5 py-2 text-xl font-bold text-violet-500 bg-transparent outline-none"
+                                  className="w-full pl-8 py-3 text-2xl font-bold text-violet-500 bg-secondary/50 rounded-xl border border-violet-500/10 focus:border-violet-500 focus:bg-white transition-all outline-none"
                                 />
                               </div>
                             </div>
                             <div className="flex gap-2">
-                              <button
+                              <Button
                                 onClick={() => updateMaterialItem(index, { isEditing: false })}
-                                className="p-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors"
+                                className="h-14 w-14 bg-violet-500 hover:bg-violet-600 rounded-xl"
                               >
-                                <Check className="w-4 h-4" />
-                              </button>
-                              <button
+                                <Check className="w-5 h-5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
                                 onClick={() => removeMaterialItem(index)}
-                                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                                className="h-14 w-14 text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-xl"
                               >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                                <Trash2 className="w-5 h-5" />
+                              </Button>
                             </div>
                           </div>
                         </div>
@@ -502,42 +504,39 @@ export default function NewInvoicePage() {
                           className="flex items-center justify-between cursor-pointer group"
                           onClick={() => updateMaterialItem(index, { isEditing: true })}
                         >
-                          <div>
-                            <h3 className="font-bold text-foreground">{item.description || 'Untitled'}</h3>
-                            <span className="text-xs font-semibold text-muted-foreground bg-secondary px-2 py-0.5 rounded mt-1 inline-block">Material</span>
+                          <div className="flex items-center gap-4">
+                             <div className="w-2 h-2 rounded-full bg-violet-500/40 group-hover:scale-150 transition-transform" />
+                             <div>
+                               <h3 className="font-bold text-foreground text-[15px] group-hover:text-violet-500 transition-colors uppercase tracking-tight">{item.description || 'Unnamed Material'}</h3>
+                               <p className="text-[10px] font-bold text-muted-foreground tracking-widest mt-0.5 opacity-60">Inventory Item</p>
+                             </div>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-lg font-bold text-foreground">${(item.amount || 0).toFixed(2)}</span>
-                            <Pencil className="w-4 h-4 text-muted-foreground/30 group-hover:text-violet-500 transition-colors" />
+                          <div className="flex items-center gap-6">
+                            <span className="text-xl font-bold font-syne text-foreground tracking-tight">${(item.amount || 0).toLocaleString()}</span>
+                            <div className="h-8 w-8 rounded-lg bg-secondary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                               <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                            </div>
                           </div>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
-
-                <button
-                  onClick={addMaterialItem}
-                  className="w-full py-4 text-violet-500 font-semibold hover:bg-violet-500/5 transition-colors flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Material Item
-                </button>
               </div>
 
               {/* Summary */}
-              <div className="pt-6 border-t border-border space-y-3 text-right">
-                <div className="flex justify-end items-center gap-8">
-                  <span className="text-sm font-semibold text-muted-foreground">Subtotal</span>
-                  <span className="text-lg font-bold text-foreground w-28">${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <div className="pt-8 border-t border-border/40 space-y-4 text-right pr-6">
+                <div className="flex justify-end items-center gap-10">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Subtotal</span>
+                  <span className="text-xl font-bold text-foreground w-32 font-syne tracking-tight">${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div className="flex justify-end items-center gap-8">
-                  <span className="text-sm font-semibold text-muted-foreground">Tax ({invoice.tax_rate}%)</span>
-                  <span className="text-lg font-bold text-muted-foreground w-28">${tax.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <div className="flex justify-end items-center gap-10">
+                  <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Tax ({invoice.tax_rate}%)</span>
+                  <span className="text-xl font-bold text-muted-foreground w-32 font-syne tracking-tight">${tax.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
-                <div className="flex justify-end items-center gap-8 pt-3">
-                  <span className="text-sm font-bold text-foreground">Total</span>
-                  <span className="text-2xl font-bold text-primary font-syne w-28">${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                <div className="flex justify-end items-center gap-10 pt-4">
+                  <span className="text-[13px] font-extrabold text-foreground uppercase tracking-widest">Grand Total</span>
+                  <span className="text-4xl font-bold text-primary font-syne w-32 tracking-tighter">${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
             </div>
@@ -545,59 +544,82 @@ export default function NewInvoicePage() {
 
           {/* Step 3: Review */}
           {step === 3 && (
-            <div className="space-y-6 animate-fade-up">
+            <div className="space-y-8 animate-fade-up">
               <div>
-                <h2 className="text-2xl font-bold text-foreground font-syne">Review & Finish</h2>
-                <p className="text-muted-foreground text-sm mt-1">Verify the details and add any notes.</p>
+                <h2 className="text-3xl font-bold text-foreground font-syne tracking-tight">Review Invoice</h2>
+                <p className="text-muted-foreground font-medium mt-1">Verify details and finalize notes before sending.</p>
               </div>
 
-              {/* Grand Total Card */}
-              <div className="relative rounded-2xl overflow-hidden grain">
+              {/* Total Card */}
+              <div className="relative rounded-[2rem] overflow-hidden shadow-2xl shadow-primary/10">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-accent" />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-                <div className="relative p-8 flex items-center justify-between">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-24 -mt-24 blur-3xl" />
+                <div className="relative p-10 flex items-center justify-between">
                   <div>
-                    <p className="text-primary-foreground/70 font-bold uppercase tracking-widest text-[10px]">Grand Total</p>
-                    <h3 className="text-4xl font-bold text-primary-foreground font-syne mt-1">${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
-                    <p className="text-primary-foreground/60 text-xs mt-1">Including {invoice.tax_rate}% tax</p>
+                    <label className="text-[10px] font-bold text-white/60 uppercase tracking-widest block mb-2">Invoice Amount</label>
+                    <h3 className="text-5xl font-bold text-white font-syne tracking-tight leading-none">${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+                    <div className="flex gap-2.5 mt-4">
+                       <span className="px-2.5 py-1 bg-white/15 text-white font-bold text-[10px] rounded-lg border border-white/20 uppercase tracking-widest">Tax included</span>
+                       <span className="px-2.5 py-1 bg-white/15 text-white font-bold text-[10px] rounded-lg border border-white/20 uppercase tracking-widest">{invoice.invoice_number}</span>
+                    </div>
                   </div>
-                  <div className="w-14 h-14 bg-primary-foreground/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-primary-foreground/20">
-                    <DollarSign className="w-7 h-7 text-primary-foreground" />
+                  <div className="w-20 h-20 bg-white/15 backdrop-blur-xl rounded-3xl flex items-center justify-center border border-white/20 shadow-2xl">
+                    <DollarSign className="w-10 h-10 text-white" />
                   </div>
                 </div>
               </div>
 
-              {/* Tax Rate */}
-              <div className="card-premium p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-bold text-foreground">Tax Rate</label>
-                    <p className="text-xs text-muted-foreground mt-0.5">Adjust if needed</p>
-                  </div>
-                  <div className="flex items-center gap-2 bg-secondary px-4 py-2 rounded-xl border border-border">
-                    <input
-                      type="number"
-                      value={invoice.tax_rate}
-                      onChange={(e) => setInvoice({ ...invoice, tax_rate: parseFloat(e.target.value) || 0 })}
-                      className="bg-transparent w-12 text-base font-bold text-primary outline-none text-center"
-                    />
-                    <span className="text-sm font-bold text-primary">%</span>
-                  </div>
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 {/* Tax Override */}
+                 <div className="card-premium p-6">
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest block mb-4">Tax Percentage</label>
+                    <div className="flex items-center gap-4">
+                       <div className="flex-1 bg-secondary/50 rounded-2xl h-14 border border-border flex items-center px-4">
+                          <input
+                            type="number"
+                            value={invoice.tax_rate}
+                            onChange={(e) => setInvoice({ ...invoice, tax_rate: parseFloat(e.target.value) || 0 })}
+                            className="bg-transparent text-xl font-bold text-foreground outline-none w-full"
+                          />
+                          <span className="text-primary font-bold">%</span>
+                       </div>
+                       <TooltipProvider>
+                          <Tooltip>
+                             <TooltipTrigger asChild>
+                                <div className="h-14 w-14 rounded-2xl bg-primary/5 flex items-center justify-center border border-primary/10 cursor-help">
+                                   <Info className="w-5 h-5 text-primary" />
+                                </div>
+                             </TooltipTrigger>
+                             <TooltipContent>Standard rate is {settings?.default_tax_rate}%</TooltipContent>
+                          </Tooltip>
+                       </TooltipProvider>
+                    </div>
+                 </div>
+
+                 {/* Confirmation Box */}
+                 <div className="card-premium p-6 bg-emerald-500/[0.03] border-emerald-500/10 flex flex-col justify-center">
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="w-8 h-8 bg-emerald-500 text-white rounded-lg flex items-center justify-center">
+                          <Check className="w-4 h-4" />
+                       </div>
+                       <span className="font-bold text-emerald-600 dark:text-emerald-400">Ready to Ship</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground font-medium pl-11">All details look good to go. Invoice will be saved immediately.</p>
+                 </div>
               </div>
 
               {/* Notes */}
-              <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <Pencil className="w-4 h-4 text-muted-foreground" />
-                  <label className="text-sm font-bold text-foreground">Notes / Payment Terms</label>
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <Pencil className="w-4 h-4 text-primary" />
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Closing Notes & Terms</label>
                 </div>
                 <textarea
-                  rows={4}
+                  rows={5}
                   value={invoice.notes}
                   onChange={(e) => setInvoice({ ...invoice, notes: e.target.value })}
-                  placeholder="Thank you for your business. Payment is due within 30 days..."
-                  className="input-field py-4 min-h-[120px] resize-none"
+                  placeholder="Thank you for choosing Apex Remodeling. Payment is due within 15 days..."
+                  className="input-field py-5 px-6 min-h-[160px] resize-none text-[15px] leading-relaxed shadow-sm font-medium"
                 />
               </div>
             </div>
@@ -606,42 +628,44 @@ export default function NewInvoicePage() {
       </main>
 
       {/* Bottom Action Bar */}
-      <footer className="fixed bottom-0 left-0 md:left-64 right-0 p-5 bg-background/90 backdrop-blur-xl border-t border-border z-30">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
+      <footer className="fixed bottom-0 left-0 lg:left-64 right-0 p-8 bg-card/85 backdrop-blur-2xl border-t border-border/60 z-30 shadow-[0_-10px_40px_-15px_rgba(0,0,0,0.05)]">
+        <div className="max-w-3xl mx-auto flex items-center gap-4">
           {step > 1 && (
-            <button
+            <Button
+              variant="secondary"
               onClick={() => setStep(step - 1)}
-              className="h-14 px-6 border border-border rounded-xl font-semibold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all"
+              className="h-16 px-10 rounded-2xl font-bold text-muted-foreground hover:bg-secondary hover:text-foreground transition-all shadow-sm group"
             >
-              Back
-            </button>
+              <ChevronLeft className="w-5 h-5 mr-1 group-hover:-translate-x-1 transition-transform" />
+              Go Back
+            </Button>
           )}
           {step < 3 ? (
-            <button
+            <Button
               onClick={() => setStep(step + 1)}
-              className="flex-1 btn-primary h-14 text-base group"
+              className="flex-1 h-16 text-base font-bold rounded-2xl copper-glow group"
             >
-              Continue
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+              Continue to {step === 1 ? 'Items' : 'Review'}
+              <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </Button>
           ) : (
-            <button
+            <Button
               onClick={handleSave}
               disabled={loading}
-              className="flex-1 btn-primary h-14 text-base group disabled:opacity-50"
+              className="flex-1 h-16 text-base font-bold rounded-2xl copper-glow group shadow-xl transition-all hover:scale-[1.01] active:scale-[0.98]"
             >
               {loading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
-                  Saving...
+                  <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                  Generating Invoice...
                 </>
               ) : (
                 <>
-                  Create Invoice
-                  <Eye className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  Finalize & Create Invoice
+                  <Check className="w-6 h-6 ml-3 group-hover:scale-110 transition-transform" />
                 </>
               )}
-            </button>
+            </Button>
           )}
         </div>
       </footer>

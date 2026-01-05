@@ -1,30 +1,40 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useParams, useRouter } from 'next/navigation'
-import { 
-  ChevronLeft, 
-  ChevronRight,
-  Send, 
-  Download, 
-  Printer, 
-  Edit3, 
-  History,
-  MoreHorizontal,
-  Mail,
-  Wrench,
-  CheckCircle2,
-  Clock,
-  AlertCircle,
+import { supabase } from '@/lib/supabase'
+import {
   FileText,
+  Calendar,
+  User,
+  Hash,
+  Download,
+  Mail,
+  MoreHorizontal,
+  ChevronLeft,
   Share2,
   Trash2,
-  ArrowRight,
-  Loader2
+  CheckCircle,
+  Clock,
+  ExternalLink,
+  Edit,
+  Printer,
+  Hammer,
+  CreditCard,
+  Building2,
+  MapPin,
+  Phone,
+  X,
+  Wrench,
+  Package,
+  Sparkles
 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip'
 
-export default function InvoiceDetailPage() {
+export default function InvoiceDetailsPage() {
   const { id } = useParams()
   const router = useRouter()
   const [loading, setLoading] = useState(true)
@@ -32,317 +42,318 @@ export default function InvoiceDetailPage() {
   const [settings, setSettings] = useState<any>(null)
 
   useEffect(() => {
-    fetchInvoiceData()
+    fetchInvoice()
   }, [id])
 
-  const fetchInvoiceData = async () => {
+  const fetchInvoice = async () => {
     setLoading(true)
-    const [invoiceRes, settingsRes] = await Promise.all([
+    const [{ data: invData }, { data: settData }] = await Promise.all([
       supabase.from('invoices').select('*, clients(*)').eq('id', id).single(),
       supabase.from('settings').select('*').eq('id', 1).single()
     ])
 
-    if (invoiceRes.data) setInvoice(invoiceRes.data)
-    if (settingsRes.data) setSettings(settingsRes.data)
+    if (invData) setInvoice(invData)
+    if (settData) setSettings(settData)
     setLoading(false)
   }
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center py-32 space-y-4">
-      <Loader2 className="w-10 h-10 text-primary animate-spin" />
-      <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Loading Invoice Preview...</p>
+    <div className="flex flex-col items-center justify-center py-40 space-y-4">
+      <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center animate-pulse">
+         <FileText className="w-6 h-6 text-primary animate-bounce" />
+      </div>
+      <p className="text-muted-foreground font-bold text-xs uppercase tracking-widest">Loading Details...</p>
     </div>
   )
 
   if (!invoice) return (
-    <div className="text-center py-20">
-      <h2 className="text-2xl font-bold text-foreground">Invoice not found</h2>
-      <button onClick={() => router.push('/invoices')} className="mt-4 text-primary font-bold">Return to history</button>
+    <div className="text-center py-20 space-y-6">
+      <div className="w-20 h-20 bg-secondary rounded-[2rem] flex items-center justify-center mx-auto">
+         <X className="w-10 h-10 text-muted-foreground/30" />
+      </div>
+      <h3 className="text-2xl font-bold font-syne">Invoice not found</h3>
+      <Button variant="outline" onClick={() => router.back()}>Go Back</Button>
     </div>
   )
 
-  const laborSubtotal = (invoice.labor_line1_amount || 0) + (invoice.labor_line2_amount || 0)
-  const materialsSubtotal = (invoice.materials_line1_amount || 0) + (invoice.materials_line2_amount || 0)
-  const subtotal = laborSubtotal + materialsSubtotal
-  const taxAmount = (subtotal * (invoice.tax_rate || 0)) / 100
-  const grandTotal = subtotal + taxAmount
+  const subtotal = (invoice.labor_line1_amount || 0) + (invoice.labor_line2_amount || 0) +
+    (invoice.materials_line1_amount || 0) + (invoice.materials_line2_amount || 0)
+  const tax = (subtotal * (invoice.tax_rate || 0)) / 100
+  const total = subtotal + tax
+
+  const isOverdue = new Date(invoice.due_date) < new Date()
 
   return (
-    <div className="space-y-10 pb-20">
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-border">
-        <div className="flex items-center gap-6">
-          <button 
-            onClick={() => router.push('/invoices')}
-            className="w-12 h-12 flex items-center justify-center bg-card border border-border rounded-2xl text-muted-foreground hover:text-primary transition-all shadow-sm"
-          >
-            <ChevronLeft className="w-6 h-6" />
-          </button>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-extrabold text-foreground font-outfit uppercase tracking-tight">Invoice {invoice.invoice_number}</h1>
-              <span className="px-3 py-1 bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 border border-orange-100 dark:border-orange-900/50 rounded-full text-[10px] font-extrabold uppercase tracking-widest">
-                Pending
-              </span>
-            </div>
-            <p className="text-muted-foreground font-medium mt-1">Created on {new Date(invoice.invoice_date).toLocaleDateString()}</p>
+    <div className="max-w-4xl mx-auto space-y-8 pb-32">
+      {/* Top Navigation & Actions */}
+      <div className="flex items-center justify-between animate-fade-up">
+        <div className="flex items-center gap-4">
+          <Button variant="secondary" size="icon" onClick={() => router.back()} className="rounded-xl h-11 w-11 shadow-sm group">
+            <ChevronLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+          </Button>
+          <div className="hidden sm:block">
+            <h1 className="text-xl font-bold text-foreground font-syne tracking-tight">Invoice Details</h1>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">#{invoice.invoice_number}</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <button className="h-12 px-6 bg-primary text-primary-foreground font-bold rounded-xl flex items-center gap-2 hover:opacity-90 transition-all shadow-xl shadow-primary/10 active:scale-[0.98]">
-            <Send className="w-4 h-4" />
+
+        <div className="flex gap-2">
+          <Button variant="outline" className="hidden sm:flex font-bold" onClick={() => window.print()}>
+            <Printer className="w-4 h-4 mr-2" />
+            Print
+          </Button>
+          <Button className="font-bold copper-glow">
+            <Mail className="w-4 h-4 mr-2" />
             Send to Client
-          </button>
-          <div className="flex items-center bg-card border border-border rounded-xl p-1 shadow-sm">
-            <button className="p-2.5 hover:bg-secondary text-muted-foreground rounded-lg transition-colors" title="Download PDF">
-              <Download className="w-5 h-5" />
-            </button>
-            <button className="p-2.5 hover:bg-secondary text-muted-foreground rounded-lg transition-colors" title="Print Invoice">
-              <Printer className="w-5 h-5" />
-            </button>
-            <div className="w-px h-6 bg-border mx-1" />
-            <button className="p-2.5 hover:bg-destructive/10 text-destructive rounded-lg transition-colors" title="Delete">
-              <Trash2 className="w-5 h-5" />
-            </button>
-          </div>
+          </Button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+               <Button variant="outline" size="icon" className="h-11 w-11">
+                 <MoreHorizontal className="w-5 h-5" />
+               </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+               <DropdownMenuLabel>Invoice Actions</DropdownMenuLabel>
+               <DropdownMenuItem>
+                 <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
+                 Edit Details
+               </DropdownMenuItem>
+               <DropdownMenuItem onClick={() => window.print()}>
+                 <Download className="w-4 h-4 mr-2 text-muted-foreground" />
+                 Download PDF
+               </DropdownMenuItem>
+               <DropdownMenuItem>
+                 <Share2 className="w-4 h-4 mr-2 text-muted-foreground" />
+                 Copy Share Link
+               </DropdownMenuItem>
+               <DropdownMenuSeparator />
+               <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                 <Trash2 className="w-4 h-4 mr-2" />
+                 Delete Permanently
+               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <div className="flex flex-col xl:flex-row gap-10">
-        {/* Invoice Preview */}
-        <div className="flex-1">
-          <div className="card-premium p-12 md:p-16 min-h-[10in] relative overflow-hidden group">
-            {/* Branding Watermark */}
-            <div className="absolute top-0 right-0 p-16 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
-              <FileText className="w-64 h-64 text-foreground rotate-12" />
+      {/* Main Preview Container */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Invoice Body */}
+        <div className="lg:col-span-8 space-y-8 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+          <div className="card-premium p-10 space-y-12 bg-white dark:bg-card">
+            {/* Branding Header */}
+            <div className="flex flex-col md:flex-row justify-between gap-10">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                   <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+                      <Hammer className="w-6 h-6 text-white" />
+                   </div>
+                   <h2 className="text-2xl font-black font-syne tracking-tighter uppercase">{settings?.company_name || 'Business'}</h2>
+                </div>
+                <div className="space-y-1 text-sm text-muted-foreground font-medium">
+                  <p className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5" /> {settings?.company_address}</p>
+                  <p className="flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> {settings?.company_phone}</p>
+                  <p className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> {settings?.company_email}</p>
+                </div>
+              </div>
+              <div className="text-right space-y-2">
+                <h3 className="text-5xl font-black font-syne text-primary/10 uppercase tracking-tighter leading-none">Invoice</h3>
+                <p className="text-lg font-bold text-foreground font-syne tracking-tight">#{invoice.invoice_number}</p>
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isOverdue ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
+                   {isOverdue ? <Clock className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                   {isOverdue ? 'Overdue' : 'Pending'}
+                </div>
+              </div>
             </div>
 
-            {/* Header Content */}
-            <div className="relative z-10">
-              <div className="flex justify-between items-start mb-20">
-                <div className="space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-                      <Wrench className="w-7 h-7 text-primary-foreground" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-black text-foreground font-outfit uppercase tracking-tighter">{settings?.company_name}</h2>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Quality Remodeling Works</p>
-                    </div>
-                  </div>
-                  <div className="space-y-1 text-sm font-semibold text-muted-foreground max-w-xs">
-                    <p>{settings?.company_address}</p>
-                    <p>{settings?.company_phone}</p>
-                    <p className="text-primary">{settings?.company_email}</p>
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <h1 className="text-6xl font-black text-foreground opacity-5 tracking-tighter uppercase italic leading-none mb-4">Invoice</h1>
-                  <div className="space-y-2">
-                    <div className="inline-flex flex-col items-end">
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Invoice Number</span>
-                      <span className="text-xl font-black text-foreground font-outfit tracking-wider italic">{invoice.invoice_number}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Client & Billing Details */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-20">
-                <div className="bg-secondary/50 rounded-[2rem] p-10 border border-border space-y-6">
-                  <div>
-                    <h5 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-4">Billing Information</h5>
-                    <h3 className="text-2xl font-black text-foreground font-outfit italic tracking-tight">{invoice.clients?.name}</h3>
-                  </div>
-                  <div className="space-y-1 text-sm font-semibold text-muted-foreground">
-                    <p>{invoice.clients?.address}</p>
-                    <p className="text-foreground">{invoice.clients?.email}</p>
-                    <p>{invoice.clients?.phone}</p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col justify-center items-end space-y-8 pr-6">
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Issue Date</p>
-                    <p className="text-lg font-black text-foreground font-outfit italic">{new Date(invoice.invoice_date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[10px] font-bold text-orange-400 uppercase tracking-widest mb-1">Payment Due</p>
-                    <p className="text-lg font-black text-orange-500 font-outfit italic leading-none">{new Date(invoice.due_date).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Items Table */}
-              <div className="space-y-12 mb-20 px-4">
-                {/* Services Section */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 pb-4 border-b-2 border-primary/10">
-                    <Wrench className="w-5 h-5 text-primary" />
-                    <h4 className="text-sm font-black text-foreground uppercase tracking-[0.2em]">Professional Services</h4>
-                  </div>
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">
-                        <th className="py-2 pr-8">Work Description</th>
-                        <th className="py-2 text-right w-40">Total Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {[1, 2].map(i => {
-                        const desc = invoice[`labor_line${i}_desc`]
-                        const amount = invoice[`labor_line${i}_amount`]
-                        if (!desc && !amount) return null
-                        return (
-                          <tr key={i} className="text-sm font-bold">
-                            <td className="py-6 text-foreground/80 pr-12 leading-relaxed">{desc}</td>
-                            <td className="py-6 text-right text-foreground tabular-nums">${parseFloat(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Materials Section */}
-                <div className="space-y-6">
-                  <div className="flex items-center gap-3 pb-4 border-b-2 border-primary/10">
-                    <CheckCircle2 className="w-5 h-5 text-primary" />
-                    <h4 className="text-sm font-black text-foreground uppercase tracking-[0.2em]">Materials & Fixtures</h4>
-                  </div>
-                  <table className="w-full">
-                    <thead>
-                      <tr className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest text-left">
-                        <th className="py-2 pr-8">Itemized Details</th>
-                        <th className="py-2 text-right w-40">Total Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {[1, 2].map(i => {
-                        const desc = invoice[`materials_line${i}_desc`]
-                        const amount = invoice[`materials_line${i}_amount`]
-                        if (!desc && !amount) return null
-                        return (
-                          <tr key={i} className="text-sm font-bold">
-                            <td className="py-6 text-foreground/80 pr-12 leading-relaxed">{desc}</td>
-                            <td className="py-6 text-right text-foreground tabular-nums">${parseFloat(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Totals Section */}
-              <div className="flex justify-end pt-12 border-t-2 border-foreground">
-                <div className="w-full md:w-80 space-y-6">
-                  <div className="space-y-3 px-2">
-                    <div className="flex justify-between items-center text-sm font-bold text-muted-foreground">
-                      <span className="uppercase tracking-widest">Job Subtotal</span>
-                      <span className="text-foreground tabular-nums">${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm font-bold text-muted-foreground">
-                      <span className="uppercase tracking-widest">Tax Provision ({invoice.tax_rate}%)</span>
-                      <span className="text-foreground tabular-nums">${taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-primary rounded-3xl p-8 flex flex-col items-center justify-center relative shadow-xl shadow-primary/20 md:translate-x-4">
-                    <span className="text-[10px] font-bold text-primary-foreground/70 uppercase tracking-widest mb-2">Total Amount Due</span>
-                    <span className="text-5xl font-black text-primary-foreground font-outfit tracking-tighter tabular-nums underline decoration-primary-foreground/30 decoration-4 underline-offset-8">
-                      ${grandTotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Section */}
-              <div className="mt-32 pt-16 border-t border-border flex flex-col md:flex-row justify-between gap-12">
-                <div className="flex-1 space-y-4">
-                  <h5 className="text-[10px] font-bold text-foreground uppercase tracking-widest">Contractual Terms & Notes</h5>
-                  <p className="text-xs text-muted-foreground/60 leading-relaxed font-medium italic">
-                    {invoice.notes || "No additional terms provided for this invoice."}
+            {/* Bill To & Dates */}
+            <div className="grid grid-cols-2 gap-10 py-10 border-y border-border/60">
+              <div className="space-y-3">
+                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Bill To</p>
+                <div>
+                  <h4 className="text-xl font-bold text-foreground font-syne">{invoice.clients?.name}</h4>
+                  <p className="text-sm text-muted-foreground font-medium mt-1 whitespace-pre-line leading-relaxed">
+                    {invoice.clients?.address}
                   </p>
                 </div>
-                <div className="text-right space-y-3">
-                  <p className="text-[10px] font-bold text-foreground uppercase tracking-widest">Verified Signature</p>
-                  <div className="h-16 w-48 bg-secondary border border-border rounded-2xl flex items-center justify-center">
-                    <span className="font-outfit text-muted-foreground/30 italic">Signed Securely</span>
-                  </div>
-                  <p className="text-[9px] font-bold text-muted-foreground/30 uppercase tracking-widest">System Authenticated</p>
+              </div>
+              <div className="flex flex-col gap-6 md:text-right">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Issued On</p>
+                  <p className="text-sm font-bold text-foreground">{invoice.invoice_date}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Due Date</p>
+                  <p className="text-sm font-bold text-foreground">{invoice.due_date}</p>
                 </div>
               </div>
             </div>
+
+            {/* Line Items Table */}
+            <div className="space-y-6">
+              <div className="grid grid-cols-12 gap-4 pb-4 border-b border-border/60">
+                 <div className="col-span-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Description</div>
+                 <div className="col-span-4 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest">Amount</div>
+              </div>
+              
+              {/* Labor */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                   <Wrench className="w-3.5 h-3.5 text-primary" />
+                   <span className="text-[11px] font-bold text-foreground uppercase tracking-widest">Labor & Services</span>
+                </div>
+                {invoice.labor_line1_desc && (
+                  <div className="grid grid-cols-12 gap-4 items-center group">
+                    <div className="col-span-8">
+                       <p className="text-sm font-bold text-foreground">{invoice.labor_line1_desc}</p>
+                    </div>
+                    <div className="col-span-4 text-right">
+                       <p className="text-sm font-bold text-foreground font-syne">${(invoice.labor_line1_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  </div>
+                )}
+                {invoice.labor_line2_desc && (
+                  <div className="grid grid-cols-12 gap-4 items-center group">
+                    <div className="col-span-8">
+                       <p className="text-sm font-bold text-foreground">{invoice.labor_line2_desc}</p>
+                    </div>
+                    <div className="col-span-4 text-right">
+                       <p className="text-sm font-bold text-foreground font-syne">${(invoice.labor_line2_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Materials */}
+              <div className="space-y-4 pt-4">
+                <div className="flex items-center gap-2 mb-2">
+                   <Package className="w-3.5 h-3.5 text-violet-500" />
+                   <span className="text-[11px] font-bold text-foreground uppercase tracking-widest">Materials & Components</span>
+                </div>
+                {invoice.materials_line1_desc && (
+                  <div className="grid grid-cols-12 gap-4 items-center group">
+                    <div className="col-span-8">
+                       <p className="text-sm font-bold text-foreground">{invoice.materials_line1_desc}</p>
+                    </div>
+                    <div className="col-span-4 text-right">
+                       <p className="text-sm font-bold text-foreground font-syne">${(invoice.materials_line1_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  </div>
+                )}
+                {invoice.materials_line2_desc && (
+                  <div className="grid grid-cols-12 gap-4 items-center group">
+                    <div className="col-span-8">
+                       <p className="text-sm font-bold text-foreground">{invoice.materials_line2_desc}</p>
+                    </div>
+                    <div className="col-span-4 text-right">
+                       <p className="text-sm font-bold text-foreground font-syne">${(invoice.materials_line2_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Total Calculations */}
+            <div className="pt-10 border-t border-border/60 flex flex-col items-end gap-3 pr-2">
+               <div className="flex justify-between items-center gap-12 text-sm">
+                  <span className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Subtotal</span>
+                  <span className="font-bold text-foreground font-syne">${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+               </div>
+               <div className="flex justify-between items-center gap-12 text-sm">
+                  <span className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tax ({invoice.tax_rate}%)</span>
+                  <span className="font-bold text-foreground font-syne">${tax.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+               </div>
+               <div className="flex justify-between items-center gap-12 pt-4 group">
+                  <span className="font-black text-foreground uppercase tracking-[0.2em] text-[13px]">Total Due</span>
+                  <span className="text-4xl font-black text-primary font-syne tracking-tighter transition-transform group-hover:scale-110">${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+               </div>
+            </div>
+
+            {/* Notes Section */}
+            {invoice.notes && (
+              <div className="pt-12 space-y-3">
+                 <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Notes & Terms</p>
+                 <div className="p-6 bg-secondary/30 rounded-2xl border border-border/40">
+                    <p className="text-sm font-medium text-foreground/80 leading-relaxed italic">
+                       {invoice.notes}
+                    </p>
+                 </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Sidebar Context */}
-        <aside className="xl:w-[380px] space-y-8">
-          <div className="card-premium p-8 space-y-8">
-            <h3 className="text-xl font-bold text-foreground font-outfit">Timeline & History</h3>
-            
-            <div className="space-y-8 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-border">
-              <div className="flex gap-4 relative">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-950/50 border-4 border-card flex items-center justify-center relative z-10">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">Invoice Generated</p>
-                  <p className="text-xs font-medium text-muted-foreground mt-0.5">{new Date(invoice.created_at).toLocaleString()}</p>
-                </div>
+        {/* Sidebar Info */}
+        <div className="lg:col-span-4 space-y-6 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+           {/* Client Summary Card */}
+           <div className="card-premium p-6 space-y-6">
+              <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">Client Contact</h4>
+              <div className="flex items-center gap-4">
+                 <Avatar className="h-12 w-12 rounded-xl shadow-sm">
+                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                       {invoice.clients?.name?.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                 </Avatar>
+                 <div>
+                    <h5 className="font-bold text-foreground">{invoice.clients?.name}</h5>
+                    <p className="text-xs text-muted-foreground">ID: {invoice.clients?.id?.substring(0, 8)}</p>
+                 </div>
               </div>
-              <div className="flex gap-4 relative">
-                <div className="w-8 h-8 rounded-full bg-secondary border-4 border-card flex items-center justify-center relative z-10">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-muted-foreground">Waiting for first mail</p>
-                  <p className="text-xs font-medium text-muted-foreground/50 mt-0.5">Not yet sent to recipient</p>
-                </div>
+              <div className="space-y-2 pt-2">
+                 <Button variant="outline" className="w-full justify-start text-xs font-bold" size="sm">
+                    <Mail className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+                    {invoice.clients?.email}
+                 </Button>
+                 <Button variant="outline" className="w-full justify-start text-xs font-bold" size="sm">
+                    <Phone className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+                    {invoice.clients?.phone || 'Add phone number'}
+                 </Button>
               </div>
-            </div>
+              <Button className="w-full font-bold" size="sm" variant="secondary" onClick={() => router.push('/clients')}>
+                 View Profile
+                 <ExternalLink className="w-3.5 h-3.5 ml-2" />
+              </Button>
+           </div>
 
-            <div className="pt-8 border-t border-border space-y-4">
-              <button className="w-full flex items-center justify-between p-4 bg-secondary/50 hover:bg-secondary border border-transparent hover:border-border rounded-2xl transition-all group">
-                <div className="flex items-center gap-3">
-                  <Share2 className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm font-bold text-foreground">Audit Log</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:translate-x-1 transition-transform" />
-              </button>
-              <button className="w-full flex items-center justify-between p-4 bg-secondary/50 hover:bg-secondary border border-transparent hover:border-border rounded-2xl transition-all group">
-                <div className="flex items-center gap-3">
-                  <Edit3 className="w-5 h-5 text-muted-foreground" />
-                  <span className="text-sm font-bold text-foreground">Edit Records</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-          </div>
+           {/* Payment Status Card */}
+           <div className="card-premium p-6 space-y-6 overflow-hidden relative">
+              <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+              <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">Payment Status</h4>
+              <div className="space-y-4">
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                       <CreditCard className="w-4 h-4 text-muted-foreground" />
+                       <span className="text-sm font-bold">Method</span>
+                    </div>
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Wire / Check</span>
+                 </div>
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                       <Calendar className="w-4 h-4 text-muted-foreground" />
+                       <span className="text-sm font-bold">Term</span>
+                    </div>
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Net 15</span>
+                 </div>
+                 <Button className="w-full font-bold mt-2" size="lg" variant="secondary">
+                    Mark as Paid
+                 </Button>
+              </div>
+           </div>
 
-          <div className="bg-primary p-8 rounded-[2rem] text-primary-foreground shadow-xl shadow-primary/20 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-background/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-            <div className="relative z-10 space-y-6">
-              <div className="w-12 h-12 bg-primary-foreground/10 rounded-xl flex items-center justify-center backdrop-blur-md">
-                <Mail className="w-6 h-6" />
+           {/* AI Insight */}
+           <div className="card-premium p-6 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-indigo-500/10">
+              <div className="flex items-center gap-2 mb-4">
+                 <Sparkles className="w-4 h-4 text-indigo-500" />
+                 <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">AI Prediction</span>
               </div>
-              <div>
-                <h4 className="text-xl font-bold font-outfit uppercase tracking-tight">Need to follow up?</h4>
-                <p className="text-primary-foreground/60 text-xs font-medium mt-1 leading-relaxed">
-                  Send a reminder notification to <span className="text-primary-foreground">{invoice.clients?.name}</span> if the due date is approaching.
-                </p>
-              </div>
-              <button className="h-12 w-full bg-primary-foreground text-primary font-bold rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition-colors">
-                Send Reminder
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </aside>
+              <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                 Based on historical data for {invoice.clients?.name}, this invoice is predicted to be paid within 4 days of the due date.
+              </p>
+           </div>
+        </div>
       </div>
     </div>
   )
 }
-

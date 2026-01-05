@@ -9,8 +9,6 @@ import {
   Phone,
   MapPin,
   Percent,
-  Hash,
-  Upload,
   Check,
   Palette,
   ChevronLeft,
@@ -20,13 +18,20 @@ import {
   Bell,
   Moon,
   LogOut,
-  Hammer,
   Plus,
   Settings as SettingsIcon,
   Sparkles,
   Shield,
-  CreditCard
+  CreditCard,
+  Upload,
+  UserCircle,
+  Eye,
+  Trash
 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter } from '@/components/ui/Dialog'
 
 export default function SettingsPage() {
   return (
@@ -60,9 +65,10 @@ function SettingsContent() {
     company_address: '',
     default_tax_rate: 0,
     next_invoice_number: 1,
-    brand_color: '#c45d35',
+    brand_color: '#c5613b',
     logo_url: '',
   })
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'general')
 
   useEffect(() => {
     fetchData()
@@ -83,7 +89,7 @@ function SettingsContent() {
         company_address: settingsData.company_address ?? '',
         default_tax_rate: settingsData.default_tax_rate ?? 0,
         next_invoice_number: settingsData.next_invoice_number ?? 1,
-        brand_color: settingsData.brand_color ?? '#c45d35',
+        brand_color: settingsData.brand_color ?? '#c5613b',
         logo_url: settingsData.logo_url ?? ''
       })
     }
@@ -146,325 +152,414 @@ function SettingsContent() {
   }
 
   const swatches = [
-    '#c45d35', // Copper (default)
+    '#c5613b', // Primary Copper
     '#3b82f6', // Blue
     '#10b981', // Green
     '#8b5cf6', // Purple
     '#f59e0b', // Amber
-    '#ec4899', // Pink
+    '#6366f1', // Indigo
   ]
 
   const ColorSwatch = ({ color }: { color: string }) => (
-    <button
-      onClick={() => setSettings({ ...settings, brand_color: color })}
-      className={`w-10 h-10 rounded-full transition-all duration-300 ${settings.brand_color.toLowerCase() === color.toLowerCase()
-          ? 'ring-2 ring-offset-2 ring-offset-background ring-primary scale-110'
-          : 'hover:scale-105 shadow-sm'
-        }`}
-      style={{ backgroundColor: color }}
-    >
-      {settings.brand_color.toLowerCase() === color.toLowerCase() && (
-        <Check className="w-4 h-4 text-white mx-auto drop-shadow-sm" />
-      )}
-    </button>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            onClick={() => setSettings({ ...settings, brand_color: color })}
+            className={`w-10 h-10 rounded-full transition-all duration-300 relative flex items-center justify-center ${settings.brand_color.toLowerCase() === color.toLowerCase()
+                ? 'ring-2 ring-offset-2 ring-offset-background ring-primary scale-110 shadow-lg shadow-black/10'
+                : 'hover:scale-110 shadow-sm opacity-80 hover:opacity-100'
+              }`}
+            style={{ backgroundColor: color }}
+          >
+            {settings.brand_color.toLowerCase() === color.toLowerCase() && (
+              <Check className="w-4 h-4 text-white drop-shadow-sm" />
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>{color.toUpperCase()}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen pb-20">
       {/* Header */}
-      <header className="bg-card/80 backdrop-blur-xl border-b border-border h-16 flex items-center px-6 sticky top-0 z-30">
-        <div className="max-w-3xl mx-auto w-full flex items-center justify-between">
-          <button
-            onClick={() => router.back()}
-            className="p-2 hover:bg-secondary rounded-xl transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5 text-foreground" />
-          </button>
-          <h1 className="text-lg font-bold text-foreground font-syne">Settings</h1>
-          <button
+      <header className="bg-card/80 backdrop-blur-xl border-b border-border h-20 flex items-center px-6 sticky top-0 z-40">
+        <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
+          <div className="flex items-center gap-4">
+             <Button variant="secondary" size="icon" onClick={() => router.back()} className="rounded-xl h-11 w-11 shadow-sm">
+                <ChevronLeft className="w-5 h-5" />
+             </Button>
+             <div>
+                <h1 className="text-2xl font-bold text-foreground font-syne tracking-tight">Settings</h1>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Preferences & Account</p>
+             </div>
+          </div>
+          <Button
             onClick={handleSave}
             disabled={loading}
-            className="text-primary hover:text-primary/80 font-bold transition-colors disabled:opacity-50 text-sm"
+            className="h-11 px-8 rounded-xl copper-glow"
           >
-            {loading ? 'Saving...' : 'Save'}
-          </button>
+            {loading ? 'Saving...' : 'Save Changes'}
+          </Button>
         </div>
       </header>
 
-      {/* Success message */}
-      {message && (
-        <div className="max-w-3xl mx-auto px-6 pt-4">
-          <div className={`p-4 rounded-xl text-sm font-medium ${message.includes('Error')
-              ? 'bg-destructive/10 text-destructive border border-destructive/20'
-              : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+      {/* Success/Error message */}
+      <div className="max-w-4xl mx-auto px-6 h-12 flex items-center">
+        {message && (
+          <div className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold animate-in fade-in slide-in-from-top-2 border ${message.includes('Error')
+              ? 'bg-destructive/10 text-destructive border-destructive/20'
+              : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
             }`}>
             {message}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      <main className="max-w-3xl mx-auto px-6 py-8 space-y-10">
+      <main className="max-w-4xl mx-auto px-6 py-4 space-y-12">
         {/* Onboarding Banner */}
         {onboarding && (
-          <div className="relative rounded-2xl overflow-hidden animate-fade-up grain">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent" />
-            <div className="absolute inset-0 opacity-20" style={{
-              backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.2) 1px, transparent 0)',
+          <div className="relative rounded-[2rem] overflow-hidden animate-fade-up shadow-xl shadow-primary/10">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-accent" />
+            <div className="absolute inset-0 opacity-10" style={{
+              backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
               backgroundSize: '24px 24px'
             }} />
-            <div className="relative p-8 space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white/15 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                  <Sparkles className="w-5 h-5 text-white" />
-                </div>
+            <div className="relative p-10 flex flex-col md:flex-row items-center gap-8">
+              <div className="w-16 h-16 bg-white/15 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/20 shadow-xl">
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-white font-syne">Welcome to Flow!</h2>
-              <p className="text-white/80 font-medium max-w-lg">
-                Complete your company profile to start creating professional invoices. This information will appear on your PDFs.
-              </p>
+              <div className="text-center md:text-left">
+                <h2 className="text-3xl font-bold text-white font-syne tracking-tight">Welcome to Flow!</h2>
+                <p className="text-white/80 font-medium mt-2 max-w-lg">
+                  Complete your company profile to start creating professional invoices. This information will appear on your PDFs.
+                </p>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Company Branding Section */}
-        <section className="space-y-5 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <Building2 className="w-4 h-4" />
-            <span className="text-[11px] font-bold uppercase tracking-widest">Company Branding</span>
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Navigation */}
+          <aside className="lg:col-span-4 space-y-4">
+             <nav className="space-y-1">
+                {[
+                  { id: 'general', name: 'General', icon: Building2 },
+                  { id: 'billing', name: 'Billing', icon: CreditCard },
+                  { id: 'account', name: 'Account', icon: UserCircle },
+                  { id: 'appearance', name: 'Appearance', icon: Palette },
+                  { id: 'security', name: 'Security', icon: Shield },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`
+                      w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all
+                      ${activeTab === tab.id 
+                        ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+                      }
+                    `}
+                  >
+                    <tab.icon className="w-4.5 h-4.5" />
+                    {tab.name}
+                  </button>
+                ))}
+             </nav>
 
-          <div className="card-premium divide-y divide-border">
-            {/* Company Name */}
-            <div className="p-6 space-y-3">
-              <label className="text-sm font-bold text-muted-foreground">Company Name</label>
-              <div className="relative">
-                <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={settings.company_name}
-                  onChange={(e) => setSettings({ ...settings, company_name: e.target.value })}
-                  className="input-field !pl-11"
-                  placeholder="Apex Remodeling LLC"
-                />
-              </div>
-            </div>
+             <div className="pt-6">
+                <Button variant="ghost" className="w-full justify-start text-destructive hover:bg-destructive/10 hover:text-destructive h-12 rounded-xl font-bold" onClick={handleSignOut}>
+                   <LogOut className="w-4.5 h-4.5 mr-3" />
+                   Sign Out
+                </Button>
+             </div>
+          </aside>
 
-            {/* Email & Phone */}
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              <div className="p-6 space-y-3">
-                <label className="text-sm font-bold text-muted-foreground">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="email"
-                    value={settings.company_email}
-                    onChange={(e) => setSettings({ ...settings, company_email: e.target.value })}
-                    className="input-field !pl-11"
-                    placeholder="hello@apex.com"
-                  />
+          {/* Content */}
+          <div className="lg:col-span-8 space-y-10">
+            {activeTab === 'general' && (
+              <section className="space-y-6 animate-fade-up">
+                <div className="space-y-1">
+                   <h3 className="text-xl font-bold text-foreground font-syne">Business Details</h3>
+                   <p className="text-sm text-muted-foreground">This info appears on your professional invoices.</p>
                 </div>
-              </div>
-              <div className="p-6 space-y-3 md:border-l border-border">
-                <label className="text-sm font-bold text-muted-foreground">Phone</label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    value={settings.company_phone}
-                    onChange={(e) => setSettings({ ...settings, company_phone: e.target.value })}
-                    className="input-field !pl-11"
-                    placeholder="(555) 000-0000"
-                  />
-                </div>
-              </div>
-            </div>
 
-            {/* Address */}
-            <div className="p-6 space-y-3">
-              <label className="text-sm font-bold text-muted-foreground">Address</label>
-              <div className="relative">
-                <MapPin className="absolute left-4 top-4 w-4 h-4 text-muted-foreground" />
-                <textarea
-                  value={settings.company_address}
-                  onChange={(e) => setSettings({ ...settings, company_address: e.target.value })}
-                  className="input-field !pl-11 py-3 min-h-[100px] resize-none"
-                  placeholder="123 Builder St, Suite 100&#10;City, State 12345"
-                />
-              </div>
-            </div>
+                <div className="card-premium p-6 space-y-6">
+                  {/* Company Name */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Company Name</label>
+                    <div className="relative">
+                      <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="text"
+                        value={settings.company_name}
+                        onChange={(e) => setSettings({ ...settings, company_name: e.target.value })}
+                        className="input-field !pl-11 h-12"
+                        placeholder="Apex Remodeling LLC"
+                      />
+                    </div>
+                  </div>
 
-            {/* Tax Rate */}
-            <div className="p-6 space-y-3">
-              <label className="text-sm font-bold text-muted-foreground">Default Tax Rate (%)</label>
-              <div className="relative">
-                <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="number"
-                  step="0.01"
-                  value={settings.default_tax_rate}
-                  onChange={(e) => setSettings({ ...settings, default_tax_rate: parseFloat(e.target.value) || 0 })}
-                  className="input-field !pl-11"
-                  placeholder="8.25"
-                />
-              </div>
-            </div>
+                  {/* Email & Phone */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Email</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input
+                          type="email"
+                          value={settings.company_email}
+                          onChange={(e) => setSettings({ ...settings, company_email: e.target.value })}
+                          className="input-field !pl-11 h-12"
+                          placeholder="hello@apex.com"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Phone</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <input
+                          type="text"
+                          value={settings.company_phone}
+                          onChange={(e) => setSettings({ ...settings, company_phone: e.target.value })}
+                          className="input-field !pl-11 h-12"
+                          placeholder="(555) 000-0000"
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-            {/* Brand Color */}
-            <div className="p-6 space-y-5">
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-bold text-muted-foreground">Brand Color</label>
-                <div className="flex items-center gap-2 bg-secondary px-3 py-1.5 rounded-lg border border-border">
-                  <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: settings.brand_color }} />
-                  <span className="text-xs font-bold text-muted-foreground uppercase">{settings.brand_color}</span>
-                </div>
-              </div>
+                  {/* Address */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Address</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-4 top-4 w-4 h-4 text-muted-foreground" />
+                      <textarea
+                        value={settings.company_address}
+                        onChange={(e) => setSettings({ ...settings, company_address: e.target.value })}
+                        className="input-field !pl-11 py-3 min-h-[100px] resize-none"
+                        placeholder="123 Builder St, Suite 100&#10;City, State 12345"
+                      />
+                    </div>
+                  </div>
 
-              <div className="flex flex-wrap gap-3">
-                {swatches.map(color => <ColorSwatch key={color} color={color} />)}
-                <div className="relative group">
-                  <input
-                    type="color"
-                    value={settings.brand_color}
-                    onChange={(e) => setSettings({ ...settings, brand_color: e.target.value.toUpperCase() })}
-                    className="w-10 h-10 rounded-full opacity-0 absolute inset-0 cursor-pointer z-10"
-                  />
-                  <div className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center bg-secondary group-hover:bg-card group-hover:border-primary/30 transition-all">
-                    <Plus className="w-4 h-4 text-muted-foreground" />
+                  {/* Tax Rate */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Default Tax Rate (%)</label>
+                    <div className="relative">
+                      <Percent className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={settings.default_tax_rate}
+                        onChange={(e) => setSettings({ ...settings, default_tax_rate: parseFloat(e.target.value) || 0 })}
+                        className="input-field !pl-11 h-12"
+                        placeholder="8.25"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              </section>
+            )}
 
-            {/* Logo Upload */}
-            <div className="p-6 space-y-3">
-              <label className="text-sm font-bold text-muted-foreground">Company Logo</label>
-              <div
-                onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-border rounded-2xl p-8 flex flex-col items-center justify-center gap-4 bg-secondary/30 hover:bg-card hover:border-primary/30 transition-all cursor-pointer group relative overflow-hidden"
-              >
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                />
-                {settings.logo_url ? (
-                  <>
-                    <img src={settings.logo_url} alt="Company Logo" className="h-24 object-contain relative z-10" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 dark:group-hover:bg-white/5 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 z-20">
-                      <p className="text-xs font-bold text-foreground bg-card px-4 py-2 rounded-lg shadow-sm">Change Logo</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <Upload className="w-7 h-7 text-primary" />
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm font-bold text-foreground">Click to upload</p>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">PNG, JPG up to 5MB</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+            {activeTab === 'appearance' && (
+              <section className="space-y-8 animate-fade-up">
+                <div className="space-y-1">
+                   <h3 className="text-xl font-bold text-foreground font-syne">Appearance</h3>
+                   <p className="text-sm text-muted-foreground">Customize how your brand looks across the platform.</p>
+                </div>
+
+                <div className="card-premium p-8 space-y-10">
+                   {/* Brand Color */}
+                   <div className="space-y-6">
+                      <div className="flex items-center justify-between">
+                         <h4 className="font-bold text-foreground">Brand Color</h4>
+                         <div className="bg-secondary px-3 py-1.5 rounded-xl border border-border flex items-center gap-2">
+                            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: settings.brand_color }} />
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{settings.brand_color}</span>
+                         </div>
+                      </div>
+                      <div className="flex flex-wrap gap-4">
+                         {swatches.map(color => <ColorSwatch key={color} color={color} />)}
+                         <div className="relative group">
+                            <input
+                              type="color"
+                              value={settings.brand_color}
+                              onChange={(e) => setSettings({ ...settings, brand_color: e.target.value.toUpperCase() })}
+                              className="w-10 h-10 rounded-full opacity-0 absolute inset-0 cursor-pointer z-10"
+                            />
+                            <div className="w-10 h-10 rounded-full border-2 border-dashed border-border flex items-center justify-center bg-secondary transition-all group-hover:bg-card">
+                               <Plus className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+
+                   {/* Logo Upload */}
+                   <div className="space-y-4">
+                      <h4 className="font-bold text-foreground">Company Logo</h4>
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-border rounded-3xl p-10 flex flex-col items-center justify-center gap-4 bg-secondary/20 hover:bg-card hover:border-primary/30 transition-all cursor-pointer group relative overflow-hidden"
+                      >
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleLogoUpload}
+                        />
+                        {settings.logo_url ? (
+                          <>
+                            <img src={settings.logo_url} alt="Company Logo" className="h-28 object-contain relative z-10" />
+                            <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20 backdrop-blur-[2px]">
+                               <div className="bg-white/90 px-5 py-2.5 rounded-2xl shadow-xl flex items-center gap-2">
+                                  <Upload className="w-4 h-4 text-primary" />
+                                  <span className="text-xs font-bold text-foreground">Change Logo</span>
+                               </div>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                              <Upload className="w-8 h-8 text-primary" />
+                            </div>
+                            <div className="text-center">
+                              <p className="text-sm font-bold text-foreground">Click to upload company logo</p>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">PNG, JPG or SVG up to 5MB</p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                   </div>
+                </div>
+              </section>
+            )}
+
+            {activeTab === 'account' && (
+              <section className="space-y-8 animate-fade-up">
+                <div className="space-y-1">
+                   <h3 className="text-xl font-bold text-foreground font-syne">Account Profile</h3>
+                   <p className="text-sm text-muted-foreground">Manage your personal information.</p>
+                </div>
+
+                <div className="card-premium overflow-hidden divide-y divide-border">
+                   <div className="p-8 flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                         <Avatar className="h-20 w-20 rounded-3xl border-2 border-secondary shadow-lg">
+                            <AvatarImage src={user?.user_metadata?.avatar_url} />
+                            <AvatarFallback className="text-2xl bg-gradient-to-br from-secondary to-muted">
+                               <User className="w-8 h-8" />
+                            </AvatarFallback>
+                         </Avatar>
+                         <div>
+                            <h4 className="text-xl font-bold text-foreground">{user?.user_metadata?.full_name || 'Business Owner'}</h4>
+                            <p className="text-sm font-medium text-muted-foreground mt-0.5">{user?.email}</p>
+                            <div className="mt-2.5 flex gap-2">
+                               <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-500/10 text-emerald-600 rounded-md border border-emerald-500/20 uppercase tracking-widest">Active</span>
+                               <span className="text-[10px] font-bold px-2 py-0.5 bg-primary/10 text-primary rounded-md border border-primary/20 uppercase tracking-widest">Pro Plan</span>
+                            </div>
+                         </div>
+                      </div>
+                      <Button variant="secondary" size="sm" className="rounded-xl font-bold">Edit Profile</Button>
+                   </div>
+
+                   <div className="p-8 flex items-center justify-between hover:bg-secondary/20 transition-colors group cursor-pointer">
+                      <div className="flex items-center gap-4">
+                         <div className="w-11 h-11 bg-amber-500/10 rounded-xl flex items-center justify-center">
+                            <Bell className="w-5 h-5 text-amber-500" />
+                         </div>
+                         <div>
+                            <h4 className="font-bold text-foreground">Notifications</h4>
+                            <p className="text-xs text-muted-foreground">Manage your update preferences</p>
+                         </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-foreground transition-all" />
+                   </div>
+                </div>
+              </section>
+            )}
+
+             {activeTab === 'security' && (
+              <section className="space-y-8 animate-fade-up">
+                <div className="space-y-1">
+                   <h3 className="text-xl font-bold text-foreground font-syne">Security</h3>
+                   <p className="text-sm text-muted-foreground">Keep your account safe and secure.</p>
+                </div>
+
+                <div className="space-y-4">
+                   <div className="card-premium p-6 flex items-center justify-between hover:bg-secondary/20 transition-colors group cursor-pointer">
+                      <div className="flex items-center gap-4">
+                         <div className="w-11 h-11 bg-violet-500/10 rounded-xl flex items-center justify-center">
+                            <Lock className="w-5 h-5 text-violet-500" />
+                         </div>
+                         <div>
+                            <h4 className="font-bold text-foreground">Password Management</h4>
+                            <p className="text-xs text-muted-foreground">Last updated 3 months ago</p>
+                         </div>
+                      </div>
+                      <Button variant="ghost" className="font-bold text-primary">Reset</Button>
+                   </div>
+
+                   <div className="card-premium p-6 flex items-center justify-between hover:bg-secondary/20 transition-colors group cursor-pointer">
+                      <div className="flex items-center gap-4">
+                         <div className="w-11 h-11 bg-foreground rounded-xl flex items-center justify-center">
+                            <Moon className="w-5 h-5 text-background" />
+                         </div>
+                         <div>
+                            <h4 className="font-bold text-foreground">Login Activity</h4>
+                            <p className="text-xs text-muted-foreground">Check your active sessions</p>
+                         </div>
+                      </div>
+                      <Button variant="secondary" size="sm">View</Button>
+                   </div>
+                </div>
+              </section>
+            )}
+
+            {activeTab === 'billing' && (
+               <section className="space-y-8 animate-fade-up">
+                <div className="space-y-1">
+                   <h3 className="text-xl font-bold text-foreground font-syne">Billing & Subscription</h3>
+                   <p className="text-sm text-muted-foreground">Manage your plan and invoices.</p>
+                </div>
+
+                <div className="card-premium p-8 relative overflow-hidden group">
+                   <div className="absolute top-0 right-0 p-8">
+                      <div className="bg-primary/10 text-primary px-4 py-1.5 rounded-full font-bold text-xs border border-primary/20">Active Plan</div>
+                   </div>
+                   <div className="space-y-6">
+                      <div className="space-y-1">
+                         <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Current Plan</p>
+                         <h4 className="text-3xl font-bold text-foreground font-syne">Flow Pro</h4>
+                      </div>
+                      <div className="flex items-center gap-4">
+                         <div className="flex items-center gap-2">
+                             <Check className="w-4 h-4 text-emerald-500" />
+                             <span className="text-sm font-medium">Unlimited Invoices</span>
+                         </div>
+                         <div className="flex items-center gap-2">
+                             <Check className="w-4 h-4 text-emerald-500" />
+                             <span className="text-sm font-medium">AI Assistant Access</span>
+                         </div>
+                      </div>
+                      <div className="pt-4 flex gap-3">
+                         <Button variant="outline" className="h-11 px-8 font-bold">Manage Billing</Button>
+                         <Button variant="ghost" className="h-11 px-8 font-bold text-muted-foreground">Change Plan</Button>
+                      </div>
+                   </div>
+                </div>
+               </section>
+            )}
           </div>
-        </section>
+        </div>
 
-        {/* Account Section */}
-        <section className="space-y-5 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <User className="w-4 h-4" />
-            <span className="text-[11px] font-bold uppercase tracking-widest">Account</span>
-          </div>
-
-          <div className="space-y-3">
-            <div className="card-premium p-5 flex items-center justify-between hover:bg-secondary/30 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl overflow-hidden flex items-center justify-center border border-border">
-                  {user?.user_metadata?.avatar_url ? (
-                    <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-6 h-6 text-primary" />
-                  )}
-                </div>
-                <div>
-                  <h4 className="font-bold text-foreground">{user?.user_metadata?.full_name || 'Business Owner'}</h4>
-                  <p className="text-sm text-muted-foreground">{user?.email}</p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-foreground transition-colors" />
-            </div>
-
-            <div className="card-premium p-5 flex items-center justify-between hover:bg-secondary/30 transition-colors cursor-pointer group">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-violet-500/10 rounded-xl flex items-center justify-center">
-                  <Lock className="w-6 h-6 text-violet-500" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-foreground">Change Password</h4>
-                  <p className="text-sm text-muted-foreground">Protect your account</p>
-                </div>
-              </div>
-              <ChevronRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-foreground transition-colors" />
-            </div>
-          </div>
-        </section>
-
-        {/* Preferences Section */}
-        <section className="space-y-5 animate-fade-up" style={{ animationDelay: '0.3s' }}>
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <SettingsIcon className="w-4 h-4" />
-            <span className="text-[11px] font-bold uppercase tracking-widest">Preferences</span>
-          </div>
-
-          <div className="card-premium divide-y divide-border">
-            <div className="p-5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center">
-                  <Bell className="w-6 h-6 text-amber-500" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-foreground">Email Notifications</h4>
-                  <p className="text-sm text-muted-foreground">Invoices & updates</p>
-                </div>
-              </div>
-              <div className="w-12 h-7 bg-primary rounded-full relative cursor-pointer">
-                <div className="absolute right-1 top-1 w-5 h-5 bg-primary-foreground rounded-full shadow-sm" />
-              </div>
-            </div>
-
-            <div className="p-5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center">
-                  <Moon className="w-6 h-6 text-background" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-foreground">Dark Mode</h4>
-                  <p className="text-sm text-muted-foreground">Use theme toggle</p>
-                </div>
-              </div>
-              <div className="w-12 h-7 bg-secondary rounded-full relative cursor-pointer border border-border">
-                <div className="absolute left-1 top-1 w-5 h-5 bg-card rounded-full shadow-sm" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Sign Out */}
-        <button
-          onClick={handleSignOut}
-          className="w-full h-14 bg-destructive/10 text-destructive font-bold rounded-xl hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2 animate-fade-up"
-          style={{ animationDelay: '0.4s' }}
-        >
-          <LogOut className="w-4 h-4" />
-          Sign Out
-        </button>
-
-        {/* Version */}
-        <div className="text-center pt-4 border-t border-border animate-fade-up" style={{ animationDelay: '0.5s' }}>
-          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Flow v2.0.0 • Copper Edition</p>
+        {/* Footer Version */}
+        <div className="pt-12 border-t border-border/60 text-center animate-fade-up" style={{ animationDelay: '0.4s' }}>
+          <p className="text-[10px] font-bold text-muted-foreground/30 uppercase tracking-[0.3em]">Flow v2.0.1 • Crafted for Craftspeople</p>
         </div>
       </main>
     </div>

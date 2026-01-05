@@ -179,12 +179,7 @@ export default function AIInvoicePage() {
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             <span className="text-sm font-medium">Back</span>
           </button>
-          <div className="flex items-center gap-2.5">
-            <div className="bg-gradient-to-br from-violet-500 to-purple-600 p-2 rounded-xl shadow-lg shadow-violet-500/20">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <span className="font-bold text-foreground font-syne">AI Invoice</span>
-          </div>
+
           <div className="w-20" />
         </div>
       </header>
@@ -329,7 +324,7 @@ export default function AIInvoicePage() {
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-all shadow-lg shadow-violet-500/20 font-semibold text-sm"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-all shadow-lg shadow-primary/20 font-semibold text-sm"
                 >
                   <Send className="w-4 h-4" />
                   <span className="hidden sm:inline">Send</span>

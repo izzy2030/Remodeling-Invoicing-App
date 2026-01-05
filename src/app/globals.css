@@ -195,7 +195,7 @@ body {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .card-premium {
-  background-color: var(--card);
+  background: linear-gradient(135deg, var(--card) 0%, color-mix(in srgb, var(--primary) 4%, var(--card)) 100%);
   color: var(--card-foreground);
   border-radius: 1.5rem;
   border: 1px solid var(--border);
@@ -225,12 +225,6 @@ body {
   opacity: 0.02;
 }
 
-/* Diagonal accent card variant */
-.card-diagonal {
-  background: 
-    linear-gradient(135deg, var(--card) 0%, var(--card) 60%, color-mix(in srgb, var(--primary) 5%, var(--card)) 100%);
-}
-
 /* Glass morphism utility */
 .glass {
   background: color-mix(in srgb, var(--card) 85%, transparent);
@@ -244,7 +238,7 @@ body {
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 85%, #000) 100%);
+  background: var(--primary);
   color: var(--primary-foreground);
   font-weight: 700;
   border-radius: 1rem;
