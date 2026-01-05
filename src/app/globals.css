@@ -15,7 +15,7 @@
   --popover-foreground: #1a1814;
   
   /* Primary - Rich Copper */
-  --primary: #c45d35;
+  --primary: #c5613b;
   --primary-foreground: #ffffff;
   
   /* Secondary - Warm Stone */
@@ -35,7 +35,7 @@
   
   --border: #d6d3d1;
   --input: #d6d3d1;
-  --ring: #c45d35;
+  --ring: #c5613b;
   --radius: 1.25rem;
   
   /* Extended palette */
@@ -44,7 +44,7 @@
   --copper-200: #f8cfc0;
   --copper-300: #f2ae97;
   --copper-400: #e87d5c;
-  --copper-500: #c45d35;
+  --copper-500: #c5613b;
   --copper-600: #a8472a;
   --copper-700: #8a3822;
   --copper-800: #6e2e1e;

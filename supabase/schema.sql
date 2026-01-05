@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS public.settings (
     default_tax_rate DECIMAL(5,2) DEFAULT 0,
     next_invoice_number INTEGER DEFAULT 1,
     logo_url TEXT,
-    brand_color TEXT DEFAULT '#3b82f6',
+    brand_color TEXT DEFAULT '#c5613b',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

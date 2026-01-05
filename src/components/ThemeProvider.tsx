@@ -23,13 +23,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setTheme('dark')
     }
     setMounted(true)
-    setMounted(true)
   }, [])
 
   useEffect(() => {
     // Fetch brand color
     import('@/lib/supabase').then(({ supabase }) => {
-      supabase.from('settings').select('brand_color').eq('id', 1).single()
+      supabase.from('settings').select('brand_color, updated_at').eq('id', 1).single()
         .then(({ data }) => {
           if (data?.brand_color) {
             document.documentElement.style.setProperty('--primary', data.brand_color)
