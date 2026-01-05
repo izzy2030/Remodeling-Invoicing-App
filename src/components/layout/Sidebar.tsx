@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   FileText,
   Users,
-  Zap,
   User,
   Menu,
   X,
@@ -13,12 +12,18 @@ import {
   Sparkles,
   Settings,
   Hammer,
-  TrendingUp
+  TrendingUp,
+  CreditCard,
+  UserCircle
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/Dialog'
 
 const mainNav = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -50,30 +55,39 @@ export default function Sidebar() {
   }
 
   const NavItem = ({ item, isActive, index }: { item: any, isActive: boolean, index: number }) => (
-    <Link
-      href={item.href}
-      className={`
-        flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden
-        ${isActive
-          ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-          : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
-        }
-      `}
-      style={{ animationDelay: `${index * 0.05}s` }}
-    >
-      {/* Active indicator line */}
-      {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground/40 rounded-r-full" />
-      )}
+    <TooltipProvider delayDuration={400}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={item.href}
+            className={`
+              flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden
+              ${isActive
+                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }
+            `}
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
+            {/* Active indicator line */}
+            {isActive && (
+              <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground/40 rounded-r-full" />
+            )}
 
-      <item.icon className={`w-[18px] h-[18px] transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
-      <span className="font-semibold text-[13px] tracking-tight">{item.name}</span>
+            <item.icon className={`w-[18px] h-[18px] transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
+            <span className="font-semibold text-[13px] tracking-tight">{item.name}</span>
 
-      {/* Shimmer effect on hover */}
-      {!isActive && (
-        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-      )}
-    </Link>
+            {/* Shimmer effect on hover */}
+            {!isActive && (
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+            )}
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent side="right">
+          Go to {item.name}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   )
 
   const SidebarContent = () => (
@@ -87,7 +101,7 @@ export default function Sidebar() {
               <Hammer className="w-5 h-5 text-primary-foreground" />
             </div>
           </div>
-          <div className="md:hidden lg:block">
+          <div>
             <h1 className="font-syne font-extrabold text-foreground tracking-tight text-xl">Flow</h1>
             <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.2em] -mt-0.5">Invoicing</p>
           </div>
@@ -124,39 +138,55 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* User profile */}
+      {/* User profile with Radix Dropdown */}
       <div className="mt-auto p-4 border-t border-border">
-        <div className="flex items-center gap-3 p-2 rounded-xl hover:bg-secondary transition-colors cursor-pointer group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-accent/20 border border-border shadow-sm overflow-hidden flex items-center justify-center">
-            {user?.user_metadata?.avatar_url ? (
-              <img src={user.user_metadata.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <User className="w-5 h-5 text-primary" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-foreground truncate">
-              {user?.user_metadata?.full_name || 'Business Owner'}
-            </p>
-            <p className="text-[10px] font-medium text-muted-foreground truncate">
-              {user?.email}
-            </p>
-          </div>
-          <button
-            onClick={handleSignOut}
-            className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all"
-            title="Sign out"
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-secondary transition-all cursor-pointer group active:scale-95">
+              <Avatar className="h-10 w-10 border-2 border-transparent group-hover:border-primary/20 transition-all">
+                <AvatarImage src={user?.user_metadata?.avatar_url} />
+                <AvatarFallback>
+                  {user?.user_metadata?.full_name?.substring(0, 2).toUpperCase() || <User className="w-5 h-5" />}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">
+                  {user?.user_metadata?.full_name || 'Business Owner'}
+                </p>
+                <p className="text-[10px] font-medium text-muted-foreground truncate">
+                  {user?.email}
+                </p>
+              </div>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="right" align="end" className="w-64">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => router.push('/settings')}>
+              <UserCircle className="w-4 h-4 mr-2 text-muted-foreground" />
+              Profile Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/settings?tab=billing')}>
+              <CreditCard className="w-4 h-4 mr-2 text-muted-foreground" />
+              Billing & Plan
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={handleSignOut}
+              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   )
 
   return (
     <>
-      {/* Mobile Header */}
+      {/* Mobile Header with Radix Dialog */}
       <header className="fixed top-0 left-0 right-0 h-16 bg-card/80 backdrop-blur-xl border-b border-border md:hidden z-50">
         <div className="h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -167,38 +197,29 @@ export default function Sidebar() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="w-10 h-10 flex items-center justify-center text-muted-foreground rounded-xl hover:bg-secondary transition-colors"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
+            <Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <DialogTrigger asChild>
+                <button
+                  className="w-10 h-10 flex items-center justify-center text-muted-foreground rounded-xl hover:bg-secondary transition-colors"
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+              </DialogTrigger>
+              <DialogContent className="fixed inset-y-0 right-0 left-auto translate-x-0 translate-y-0 w-80 h-full rounded-none border-l animate-in slide-in-from-right duration-300 p-0">
+                <div className="p-4 absolute top-0 right-0 z-50">
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:bg-secondary rounded-xl transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <SidebarContent />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
       </header>
-
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-background/60 backdrop-blur-sm z-50 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
-      {/* Mobile Slide-in Menu */}
-      <aside className={`
-        fixed inset-y-0 right-0 w-72 bg-card border-l border-border md:hidden z-50 
-        transform transition-transform duration-300 ease-out
-        ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}
-      `}>
-        <button
-          onClick={() => setMobileMenuOpen(false)}
-          className="absolute top-4 right-4 w-10 h-10 flex items-center justify-center text-muted-foreground hover:bg-secondary rounded-xl transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-        <SidebarContent />
-      </aside>
 
       {/* Desktop Sidebar */}
       <aside className="fixed inset-y-0 left-0 w-64 bg-card/50 backdrop-blur-md border-r border-border hidden md:flex flex-col z-40">

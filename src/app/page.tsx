@@ -16,13 +16,18 @@ import {
   Sparkles,
   ChevronRight,
   Target,
-  Wallet
+  Wallet,
+  Eye,
+  Settings
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
 import { OverviewChart } from '@/components/dashboard/OverviewChart'
 import { Area, AreaChart, ResponsiveContainer } from 'recharts'
+import { Button } from '@/components/ui/Button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -67,13 +72,6 @@ export default function DashboardPage() {
 
     if (invoicesRes.data) {
       setRecentInvoices(invoicesRes.data)
-
-      // Calculate total revenue from ALL time? Or just recent? 
-      // Usually dashboard shows Total Revenue or Monthly. 
-      // For now, let's keep the user's existing logic (but it was only summing limit(6)).
-      // Let's improve it to sum from the chart data (last 6 months) as "Revenue (Last 6 Months)" or similar.
-      // Wait, standard dashboard usually shows "Total Revenue" or "This Month".
-      // Let's rely on the chartRes for a 6-month sum.
       
        const calculateTotal = (inv: any) => {
         const subtotal = (inv.labor_line1_amount || 0) + (inv.labor_line2_amount || 0) +
@@ -108,8 +106,7 @@ export default function DashboardPage() {
           totalRev += amount
         })
 
-        // Also check pending from recentInvoices (approximation)
-        pending = invoicesRes.data.length // This is just count
+        pending = invoicesRes.data.length 
 
         setStats({
           totalRevenue: totalRev,
@@ -154,7 +151,6 @@ export default function DashboardPage() {
   )
 
   const Sparkline = ({ color, trend }: { color: string, trend: 'up' | 'down' }) => {
-    // Mock data for sparkline
     const data = trend === 'up' 
       ? [{v: 10}, {v: 20}, {v: 15}, {v: 25}, {v: 20}, {v: 35}, {v: 40}]
       : [{v: 40}, {v: 35}, {v: 20}, {v: 25}, {v: 15}, {v: 20}, {v: 10}]
@@ -202,12 +198,12 @@ export default function DashboardPage() {
     delay: number
   }) => (
     <div
-      className="card-premium card-diagonal p-6 animate-fade-up"
+      className="card-premium card-diagonal p-6 animate-fade-up shadow-sm hover:shadow-md"
       style={{ animationDelay: `${delay}s` }}
     >
       <div className="flex justify-between items-start mb-6">
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center"
+          className="w-12 h-12 rounded-xl flex items-center justify-center shadow-inner"
           style={{ background: `linear-gradient(135deg, ${color}15, ${color}08)` }}
         >
           <Icon className="w-6 h-6" style={{ color }} />
@@ -216,14 +212,14 @@ export default function DashboardPage() {
       </div>
 
       <div className="space-y-2">
-        <p className="text-[13px] font-semibold text-muted-foreground">{title}</p>
+        <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-tight">{title}</p>
         <h3 className="text-3xl font-bold text-foreground font-syne tracking-tight">{value}</h3>
         <div className="flex items-center gap-2 pt-1">
           <span className={`
             flex items-center gap-1 text-[12px] font-bold px-2 py-0.5 rounded-md
             ${trend === 'up'
-              ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10'
-              : 'text-amber-600 dark:text-amber-400 bg-amber-500/10'
+              ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20'
+              : 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20'
             }
           `}>
             {trend === 'up' ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -241,12 +237,12 @@ export default function DashboardPage() {
 
     return (
       <div
-        className="card-premium p-5 group animate-fade-up"
+        className="card-premium p-5 group animate-fade-up hover:scale-[1.02] active:scale-[0.98]"
         style={{ animationDelay: `${0.3 + (index * 0.05)}s` }}
       >
         <div className="flex justify-between items-start mb-5">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 bg-gradient-to-br from-secondary to-secondary/50 rounded-xl flex items-center justify-center font-bold text-muted-foreground border border-border text-sm group-hover:from-primary/10 group-hover:to-accent/10 group-hover:text-primary transition-all duration-300">
+            <div className="w-11 h-11 bg-gradient-to-br from-secondary to-secondary/50 rounded-xl flex items-center justify-center font-bold text-muted-foreground border border-border text-sm group-hover:from-primary/10 group-hover:to-accent/10 group-hover:text-primary transition-all duration-500 shadow-sm">
               {invoice.clients?.name?.substring(0, 2).toUpperCase()}
             </div>
             <div>
@@ -258,23 +254,44 @@ export default function DashboardPage() {
               </p>
             </div>
           </div>
-          <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors opacity-0 group-hover:opacity-100">
-            <MoreHorizontal className="w-4 h-4" />
-          </button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+               <DropdownMenuItem onClick={() => router.push(`/invoices/${invoice.id}`)}>
+                 <Eye className="w-4 h-4 mr-2 text-muted-foreground" />
+                 View Details
+               </DropdownMenuItem>
+               <DropdownMenuItem>
+                 <Sparkles className="w-4 h-4 mr-2 text-muted-foreground" />
+                 Generate Note
+               </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        <div className="pt-4 border-t border-border">
+        <div className="pt-4 border-t border-border/60">
           <div className="flex justify-between items-end">
             <div>
-              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Amount</p>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1 opacity-60">Amount</p>
               <p className="text-xl font-bold text-foreground font-syne tracking-tight">${total.toLocaleString()}</p>
             </div>
-            <Link
-              href={`/invoices/${invoice.id}`}
-              className="w-10 h-10 flex items-center justify-center bg-secondary text-muted-foreground rounded-xl hover:bg-primary hover:text-primary-foreground transition-all duration-300 group/btn"
-            >
-              <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
-            </Link>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button asChild variant="secondary" size="icon" className="h-10 w-10 hover:bg-primary hover:text-white group/btn">
+                    <Link href={`/invoices/${invoice.id}`}>
+                      <ArrowUpRight className="w-4 h-4 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View Invoice</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </div>
@@ -295,9 +312,17 @@ export default function DashboardPage() {
               <span className="text-gradient">${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
             </h2>
             <p className="text-muted-foreground font-medium">Total revenue (Last 6 Months)</p>
+            <div className="mt-6 flex gap-3">
+               <Button size="sm" variant="outline" onClick={() => router.push('/invoices')}>
+                 Invoices
+               </Button>
+               <Button size="sm" variant="ghost">
+                 Settings
+               </Button>
+            </div>
           </div>
           {chartData.some(d => d.total > 0) && (
-            <div className="lg:col-span-2 h-[160px] w-full mt-2 lg:mt-0">
+            <div className="lg:col-span-2 h-[160px] w-full mt-2 lg:mt-0 bg-white/50 dark:bg-black/20 rounded-3xl p-4 border border-border/50">
               <OverviewChart data={chartData} />
             </div>
           )}
@@ -345,37 +370,38 @@ export default function DashboardPage() {
             <h2 className="text-2xl font-bold text-foreground font-syne tracking-tight">Recent Invoices</h2>
             <p className="text-sm text-muted-foreground mt-0.5">Your latest billing activity</p>
           </div>
-          <Link
-            href="/invoices"
-            className="flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors group"
-          >
-            View all
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          <Button asChild variant="ghost" size="sm" className="font-bold text-primary hover:text-primary">
+            <Link href="/invoices" className="flex items-center gap-2">
+              View all
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Draft</span>
-              <span className="text-[11px] font-bold text-foreground bg-secondary px-2 py-0.5 rounded-md">2</span>
+              <span className="text-[11px] font-bold text-foreground bg-secondary px-2 py-0.5 rounded-md border border-border">2</span>
             </div>
             <div className="space-y-4">
               {recentInvoices.slice(0, 2).map((inv, i) => <InvoiceCard key={inv.id} invoice={inv} index={i} />)}
-              <button
-                className="w-full flex items-center justify-center py-5 border-2 border-dashed border-border rounded-2xl text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all text-sm font-bold gap-2 group animate-fade-up"
+              <Button
+                variant="outline"
+                className="w-full py-8 border-2 border-dashed border-border rounded-[1.5rem] text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5 transition-all text-sm font-bold gap-2 group animate-fade-up h-auto"
                 style={{ animationDelay: '0.4s' }}
+                onClick={() => router.push('/invoices/new')}
               >
                 <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
                 New Invoice
-              </button>
+              </Button>
             </div>
           </div>
 
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Pending</span>
-              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">2</span>
+              <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">2</span>
             </div>
             <div className="space-y-4">
               {recentInvoices.slice(2, 4).map((inv, i) => <InvoiceCard key={inv.id} invoice={inv} index={i + 2} />)}
@@ -385,7 +411,7 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Paid</span>
-              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">2</span>
+              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">2</span>
             </div>
             <div className="space-y-4">
               {recentInvoices.slice(4, 6).map((inv, i) => <InvoiceCard key={inv.id} invoice={inv} index={i + 4} />)}
@@ -396,32 +422,29 @@ export default function DashboardPage() {
 
       {/* AI Assistant CTA */}
       <div
-        className="relative rounded-[2rem] overflow-hidden animate-fade-up grain"
+        className="relative rounded-[2.5rem] overflow-hidden animate-fade-up shadow-2xl shadow-primary/10 group"
         style={{ animationDelay: '0.5s' }}
       >
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-accent" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-accent transition-transform duration-700 group-hover:scale-105" />
 
-        {/* Decorative elements */}
         <div className="absolute -top-32 -right-32 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-black/10 rounded-full blur-3xl" />
-        <div className="absolute inset-0 opacity-30" style={{
-          backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)',
+        <div className="absolute inset-0 opacity-10" style={{
+          backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
           backgroundSize: '32px 32px'
         }} />
 
-        {/* Content */}
-        <div className="relative z-10 p-10 md:p-12 flex flex-col md:flex-row items-center justify-between gap-10">
-          <div className="space-y-6 max-w-xl">
-            <div className="flex items-center gap-3">
-              <div className="w-14 h-14 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20">
-                <Sparkles className="w-7 h-7 text-white" />
+        <div className="relative z-10 p-10 md:p-14 flex flex-col md:flex-row items-center justify-between gap-10">
+          <div className="space-y-8 max-w-xl">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-white/15 backdrop-blur-xl rounded-[1.5rem] flex items-center justify-center border border-white/20 shadow-xl">
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1.5">
                 {[0, 1, 2, 3, 4].map(i => (
                   <div
                     key={i}
-                    className="w-1.5 h-1.5 bg-white/60 rounded-full"
+                    className="w-2 h-2 bg-white/40 rounded-full animate-pulse"
                     style={{ animationDelay: `${i * 0.1}s` }}
                   />
                 ))}
@@ -429,32 +452,31 @@ export default function DashboardPage() {
             </div>
 
             <div>
-              <h3 className="text-3xl md:text-4xl font-bold text-white font-syne tracking-tight leading-tight">
+              <h3 className="text-3xl md:text-5xl font-bold text-white font-syne tracking-tight leading-tight">
                 AI-Powered Invoicing
               </h3>
-              <p className="text-white/70 font-medium text-lg mt-3 leading-relaxed max-w-md">
+              <p className="text-white/80 font-medium text-lg mt-4 leading-relaxed max-w-md">
                 Create professional invoices instantly using natural language.
                 Just describe your work and let AI handle the rest.
               </p>
             </div>
 
-            <Link
-              href="/invoices/ai"
-              className="inline-flex items-center gap-3 h-14 px-8 bg-white text-primary font-bold rounded-xl hover:bg-white/90 transition-all shadow-xl shadow-black/10 group"
-            >
-              <span className="text-sm uppercase tracking-wide">Try AI Invoice</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
+            <Button asChild size="lg" className="bg-white text-primary hover:bg-white/90 shadow-2xl shadow-black/20 rounded-2xl h-16 px-10 group/cta">
+              <Link href="/invoices/ai" className="flex items-center gap-3">
+                <span className="text-base uppercase tracking-wider">Try AI Invoice</span>
+                <ArrowRight className="w-6 h-6 group-hover/cta:translate-x-1.5 transition-transform" />
+              </Link>
+            </Button>
           </div>
 
-          {/* Decorative icon */}
-          <div className="hidden lg:block">
-            <div className="relative">
-              <div className="absolute inset-0 bg-white/5 rounded-full blur-2xl scale-150" />
-              <div className="relative w-48 h-48 border-2 border-white/10 rounded-full flex items-center justify-center">
-                <div className="w-32 h-32 border-2 border-white/10 rounded-full flex items-center justify-center animate-float">
-                  <Sparkles className="w-16 h-16 text-white/20" />
-                </div>
+          <div className="hidden lg:block relative">
+            <div className="absolute inset-0 bg-white/5 rounded-full blur-3xl scale-150" />
+            <div className="relative w-64 h-64 border-2 border-white/10 rounded-full flex items-center justify-center">
+              <div className="w-48 h-48 border-2 border-white/5 rounded-full flex items-center justify-center animate-float overflow-hidden">
+                <Sparkles className="w-24 h-24 text-white/10" />
+              </div>
+              <div className="absolute -top-4 -right-4 w-12 h-12 bg-accent rounded-2xl flex items-center justify-center shadow-lg animate-bounce" style={{ animationDuration: '3s' }}>
+                 <Zap className="w-6 h-6 text-white" />
               </div>
             </div>
           </div>

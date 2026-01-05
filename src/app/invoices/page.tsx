@@ -18,13 +18,19 @@ import {
   Sparkles,
   Calendar,
   DollarSign,
-  ChevronDown
+  ChevronDown,
+  Download,
+  Trash,
+  Mail,
+  Copy
 } from 'lucide-react'
+import { Button } from '@/components/ui/Button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
 
 export default function InvoicesPage() {
   const [loading, setLoading] = useState(true)
   const [invoices, setInvoices] = useState<any[]>([])
-  const [filterOpen, setFilterOpen] = useState(false)
 
   useEffect(() => {
     fetchInvoices()
@@ -64,7 +70,7 @@ export default function InvoicesPage() {
       style={{ animationDelay: `${delay}s` }}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${gradient}`}>
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-lg shadow-black/5 ${gradient}`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
         <div className="w-16 h-8 relative overflow-hidden opacity-60">
@@ -98,20 +104,18 @@ export default function InvoicesPage() {
             <h1 className="text-4xl md:text-5xl font-bold text-foreground font-syne tracking-tight">Invoices</h1>
           </div>
           <div className="flex gap-3">
-            <Link
-              href="/invoices/ai"
-              className="h-12 px-5 bg-gradient-to-r from-violet-500 to-purple-600 text-white font-bold rounded-xl hover:opacity-90 transition-all flex items-center gap-2 text-sm shadow-lg shadow-violet-500/20"
-            >
-              <Sparkles className="w-4 h-4" />
-              AI Invoice
-            </Link>
-            <Link
-              href="/invoices/new"
-              className="btn-primary text-sm"
-            >
-              <Plus className="w-4 h-4" />
-              New Invoice
-            </Link>
+            <Button asChild variant="secondary" className="bg-gradient-to-r from-violet-500/10 to-purple-600/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 hover:from-violet-500/20 hover:to-purple-600/20">
+              <Link href="/invoices/ai" className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                AI Invoice
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link href="/invoices/new" className="flex items-center gap-2">
+                <Plus className="w-4 h-4" />
+                New Invoice
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -148,22 +152,37 @@ export default function InvoicesPage() {
           <input
             type="text"
             placeholder="Search invoices by client or number..."
-            className="input-field pl-11"
+            className="input-field pl-11 shadow-sm focus:shadow-md h-14"
           />
         </div>
         <div className="flex gap-2">
-          <button
-            onClick={() => setFilterOpen(!filterOpen)}
-            className="h-14 px-5 bg-card border border-border text-foreground font-semibold rounded-xl hover:bg-secondary transition-all flex items-center gap-2 text-sm"
-          >
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            Filter
-            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
-          </button>
-          <button className="h-14 px-5 bg-card border border-border text-foreground font-semibold rounded-xl hover:bg-secondary transition-all flex items-center gap-2 text-sm">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="h-14 font-semibold">
+                <Filter className="w-4 h-4 text-muted-foreground mr-2" />
+                Filter
+                <ChevronDown className="w-4 h-4 text-muted-foreground ml-2 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64">
+               <div className="space-y-3">
+                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Filter by Status</p>
+                 <div className="space-y-1.5">
+                   {['All', 'Paid', 'Pending', 'Overdue'].map(status => (
+                     <button key={status} className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-secondary transition-colors flex items-center justify-between group">
+                       {status}
+                       <div className="w-4 h-4 rounded-full border border-border group-hover:border-primary/50 transition-colors" />
+                     </button>
+                   ))}
+                 </div>
+               </div>
+            </PopoverContent>
+          </Popover>
+
+          <Button variant="outline" className="h-14 font-semibold">
+            <Calendar className="w-4 h-4 text-muted-foreground mr-2" />
             Date
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -173,7 +192,7 @@ export default function InvoicesPage() {
           <div className="relative">
             <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
             <div className="relative bg-gradient-to-br from-primary to-accent p-4 rounded-2xl">
-              <FileText className="w-8 h-8 text-primary-foreground" />
+              <Loader2 className="w-8 h-8 text-primary-foreground animate-spin" />
             </div>
           </div>
           <p className="text-muted-foreground font-bold uppercase tracking-widest text-[11px]">Loading Invoices...</p>
@@ -187,13 +206,13 @@ export default function InvoicesPage() {
             return (
               <div
                 key={invoice.id}
-                className="card-premium p-5 group animate-fade-up"
+                className="card-premium p-5 group animate-fade-up hover:scale-[1.01] active:scale-[0.99]"
                 style={{ animationDelay: `${0.3 + (index * 0.03)}s` }}
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                   {/* Client Info */}
                   <div className="flex items-center gap-4 flex-1">
-                    <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary/50 rounded-xl flex items-center justify-center font-bold text-muted-foreground border border-border group-hover:from-primary/10 group-hover:to-accent/10 group-hover:text-primary transition-all duration-300">
+                    <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary/50 rounded-xl flex items-center justify-center font-bold text-muted-foreground border border-border group-hover:from-primary/10 group-hover:to-accent/10 group-hover:text-primary transition-all duration-500 shadow-sm">
                       {invoice.clients?.name?.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
@@ -209,14 +228,14 @@ export default function InvoicesPage() {
                   {/* Status & Due Date */}
                   <div className="flex items-center gap-8 px-2">
                     <div className="text-center hidden md:block">
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Status</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 opacity-60">Status</p>
                       <span className={`badge ${status.style}`}>
                         {status.label}
                       </span>
                     </div>
 
                     <div className="text-center hidden md:block">
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5">Due Date</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-1.5 opacity-60">Due Date</p>
                       <p className="text-xs font-bold text-foreground">{invoice.due_date}</p>
                     </div>
                   </div>
@@ -224,21 +243,45 @@ export default function InvoicesPage() {
                   {/* Amount & Actions */}
                   <div className="flex items-center justify-between md:justify-end gap-6 pt-4 md:pt-0 border-t md:border-0 border-border">
                     <div className="md:text-right">
-                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Total</p>
+                      <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5 opacity-60">Total</p>
                       <p className="text-xl font-bold text-foreground font-syne tracking-tight">
                         ${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </p>
                     </div>
                     <div className="flex gap-2">
-                      <Link
-                        href={`/invoices/${invoice.id}`}
-                        className="w-10 h-10 flex items-center justify-center bg-secondary text-muted-foreground rounded-xl hover:bg-primary hover:text-primary-foreground transition-all duration-300 group/btn"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </Link>
-                      <button className="w-10 h-10 flex items-center justify-center bg-secondary text-muted-foreground rounded-xl hover:bg-foreground hover:text-background transition-all">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
+                      <Button asChild variant="secondary" size="icon" className="h-10 w-10">
+                        <Link href={`/invoices/${invoice.id}`}>
+                          <Eye className="w-4 h-4" />
+                        </Link>
+                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="secondary" size="icon" className="h-10 w-10">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => window.print()}>
+                            <Download className="w-4 h-4 mr-2 text-muted-foreground" />
+                            Download PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
+                            Email Client
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigator.clipboard.writeText(invoice.invoice_number)}>
+                            <Copy className="w-4 h-4 mr-2 text-muted-foreground" />
+                            Copy Number
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                            <Trash className="w-4 h-4 mr-2" />
+                            Delete Invoice
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>
@@ -258,13 +301,12 @@ export default function InvoicesPage() {
                   Get started by creating your first professional invoice for your remodeling projects.
                 </p>
               </div>
-              <Link
-                href="/invoices/new"
-                className="inline-flex items-center gap-2 btn-primary px-8 h-14 group"
-              >
-                Create First Invoice
-                <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </Link>
+              <Button asChild size="lg" className="rounded-2xl px-12 h-14 group">
+                <Link href="/invoices/new" className="flex items-center gap-2">
+                  Create First Invoice
+                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </Link>
+              </Button>
             </div>
           )}
         </div>
