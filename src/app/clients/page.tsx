@@ -96,7 +96,7 @@ export default function ClientsPage() {
           <input
             type="text"
             placeholder="Search by name, email or location..."
-            className="input-field pl-11"
+            className="input-field !pl-11"
           />
         </div>
         <button className="h-14 px-6 bg-card border border-border text-foreground font-semibold rounded-xl hover:bg-secondary transition-all flex items-center gap-2 text-sm">
@@ -247,7 +247,7 @@ export default function ClientsPage() {
                     value={newClient.name}
                     onChange={(e) => setNewClient({ ...newClient, name: e.target.value })}
                     placeholder="e.g. John Miller"
-                    className="input-field pl-11"
+                    className="input-field !pl-11"
                   />
                 </div>
               </div>
@@ -263,7 +263,7 @@ export default function ClientsPage() {
                       value={newClient.email}
                       onChange={(e) => setNewClient({ ...newClient, email: e.target.value })}
                       placeholder="client@email.com"
-                      className="input-field pl-11"
+                      className="input-field !pl-11"
                     />
                   </div>
                 </div>
@@ -276,7 +276,7 @@ export default function ClientsPage() {
                       value={newClient.phone}
                       onChange={(e) => setNewClient({ ...newClient, phone: e.target.value })}
                       placeholder="+1 (000) 000-0000"
-                      className="input-field pl-11"
+                      className="input-field !pl-11"
                     />
                   </div>
                 </div>
@@ -292,7 +292,7 @@ export default function ClientsPage() {
                     value={newClient.address}
                     onChange={(e) => setNewClient({ ...newClient, address: e.target.value })}
                     placeholder="Where is the job site located?"
-                    className="input-field pl-11 py-3 min-h-[100px] resize-none"
+                    className="input-field !pl-11 py-3 min-h-[100px] resize-none"
                   />
                 </div>
               </div>

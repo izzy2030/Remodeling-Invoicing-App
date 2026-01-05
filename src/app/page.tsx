@@ -21,12 +21,16 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
+import { OverviewChart } from '@/components/dashboard/OverviewChart'
+import { Area, AreaChart, ResponsiveContainer } from 'recharts'
+
 export default function DashboardPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [user, setUser] = useState<any>(null)
   const [stats, setStats] = useState({ totalRevenue: 0, pendingCount: 0, clientCount: 0 })
   const [recentInvoices, setRecentInvoices] = useState<any[]>([])
+  const [chartData, setChartData] = useState<any[]>([])
 
   useEffect(() => {
     fetchDashboardData()
@@ -34,14 +38,22 @@ export default function DashboardPage() {
 
   const fetchDashboardData = async () => {
     setLoading(true)
+    const sixMonthsAgo = new Date()
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+
     const [
       { data: { user: currentUser } },
       invoicesRes,
+      chartInvoicesRes,
       clientsRes,
       settingsRes
     ] = await Promise.all([
       supabase.auth.getUser(),
       supabase.from('invoices').select('*, clients(*)').order('created_at', { ascending: false }).limit(6),
+      supabase.from('invoices')
+        .select('created_at, labor_line1_amount, labor_line2_amount, materials_line1_amount, materials_line2_amount, materials_line3_amount, tax_rate')
+        .gte('created_at', sixMonthsAgo.toISOString())
+        .order('created_at', { ascending: true }),
       supabase.from('clients').select('*', { count: 'exact' }),
       supabase.from('settings').select('*').eq('id', 1).single()
     ])
@@ -56,18 +68,61 @@ export default function DashboardPage() {
     if (invoicesRes.data) {
       setRecentInvoices(invoicesRes.data)
 
-      const total = invoicesRes.data.reduce((acc, inv) => {
+      // Calculate total revenue from ALL time? Or just recent? 
+      // Usually dashboard shows Total Revenue or Monthly. 
+      // For now, let's keep the user's existing logic (but it was only summing limit(6)).
+      // Let's improve it to sum from the chart data (last 6 months) as "Revenue (Last 6 Months)" or similar.
+      // Wait, standard dashboard usually shows "Total Revenue" or "This Month".
+      // Let's rely on the chartRes for a 6-month sum.
+      
+       const calculateTotal = (inv: any) => {
         const subtotal = (inv.labor_line1_amount || 0) + (inv.labor_line2_amount || 0) +
-          (inv.materials_line1_amount || 0) + (inv.materials_line2_amount || 0)
+          (inv.materials_line1_amount || 0) + (inv.materials_line2_amount || 0) + (inv.materials_line3_amount || 0)
         const tax = (subtotal * (inv.tax_rate || 0)) / 100
-        return acc + subtotal + tax
-      }, 0)
+        return subtotal + tax
+      }
 
-      setStats({
-        totalRevenue: total,
-        pendingCount: invoicesRes.data.length,
-        clientCount: clientsRes.count || 0
-      })
+      if (chartInvoicesRes.data) {
+        // Group by month
+        const monthlyData = new Map<string, number>()
+        
+        // Initialize last 6 months
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date()
+          d.setMonth(d.getMonth() - i)
+          const key = d.toLocaleString('default', { month: 'short' })
+          monthlyData.set(key, 0)
+        }
+
+        let totalRev = 0
+        let pending = 0
+
+        chartInvoicesRes.data.forEach(inv => {
+          const amount = calculateTotal(inv)
+          const date = new Date(inv.created_at)
+          const key = date.toLocaleString('default', { month: 'short' })
+          
+          if (monthlyData.has(key)) {
+             monthlyData.set(key, (monthlyData.get(key) || 0) + amount)
+          }
+          totalRev += amount
+        })
+
+        // Also check pending from recentInvoices (approximation)
+        pending = invoicesRes.data.length // This is just count
+
+        setStats({
+          totalRevenue: totalRev,
+          pendingCount: pending,
+          clientCount: clientsRes.count || 0
+        })
+
+        const formattedChartData = Array.from(monthlyData).map(([name, total]) => ({
+          name,
+          total
+        }))
+        setChartData(formattedChartData)
+      }
     }
     setLoading(false)
   }
@@ -98,36 +153,34 @@ export default function DashboardPage() {
     </div>
   )
 
-  const Sparkline = ({ color, trend }: { color: string, trend: 'up' | 'down' }) => (
-    <div className="w-28 h-12 relative overflow-hidden opacity-80">
-      <svg viewBox="0 0 100 40" className="w-full h-full overflow-visible">
-        <defs>
-          <linearGradient id={`spark-${color}-${trend}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={color} stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path
-          d={trend === 'up'
-            ? "M0 35 Q 15 32, 25 28 T 45 22 T 65 15 T 85 10 T 100 5"
-            : "M0 5 Q 15 8, 25 15 T 45 22 T 65 28 T 85 32 T 100 35"
-          }
-          fill="none"
-          stroke={color}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          className="animate-draw"
-        />
-        <path
-          d={trend === 'up'
-            ? "M0 35 Q 15 32, 25 28 T 45 22 T 65 15 T 85 10 T 100 5 V 40 H 0 Z"
-            : "M0 5 Q 15 8, 25 15 T 45 22 T 65 28 T 85 32 T 100 35 V 40 H 0 Z"
-          }
-          fill={`url(#spark-${color}-${trend})`}
-        />
-      </svg>
-    </div>
-  )
+  const Sparkline = ({ color, trend }: { color: string, trend: 'up' | 'down' }) => {
+    // Mock data for sparkline
+    const data = trend === 'up' 
+      ? [{v: 10}, {v: 20}, {v: 15}, {v: 25}, {v: 20}, {v: 35}, {v: 40}]
+      : [{v: 40}, {v: 35}, {v: 20}, {v: 25}, {v: 15}, {v: 20}, {v: 10}]
+    
+    return (
+      <div className="w-32 h-16">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id={`spark-${color}-${trend}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Area
+              type="monotone"
+              dataKey="v"
+              stroke={color}
+              strokeWidth={2}
+              fill={`url(#spark-${color}-${trend})`}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    )
+  }
 
   const StatCard = ({
     title,
@@ -236,14 +289,23 @@ export default function DashboardPage() {
           <Wallet className="w-5 h-5 text-primary" />
           <p className="text-sm font-semibold text-muted-foreground">Revenue Overview</p>
         </div>
-        <h2 className="text-5xl md:text-6xl font-bold font-syne tracking-tight">
-          <span className="text-gradient">${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-        </h2>
-        <p className="text-muted-foreground font-medium mt-2">Total revenue this period</p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-1 flex flex-col justify-start">
+             <h2 className="text-4xl md:text-5xl font-bold font-syne tracking-tight leading-none mb-1">
+              <span className="text-gradient">${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            </h2>
+            <p className="text-muted-foreground font-medium">Total revenue (Last 6 Months)</p>
+          </div>
+          {chartData.some(d => d.total > 0) && (
+            <div className="lg:col-span-2 h-[160px] w-full mt-2 lg:mt-0">
+              <OverviewChart data={chartData} />
+            </div>
+          )}
+        </div>
       </section>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 -mt-2">
         <StatCard
           title="New Invoices"
           value={stats.pendingCount.toString()}

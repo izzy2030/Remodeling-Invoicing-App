@@ -101,7 +101,11 @@ export default function Sidebar() {
         </div>
         <nav className="space-y-1">
           {mainNav.map((item, index) => {
-            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+            const isActive = pathname === item.href || (
+              item.href !== '/' && 
+              pathname.startsWith(item.href) && 
+              (item.href === '/invoices' ? pathname !== '/invoices/ai' : true)
+            )
             return <NavItem key={item.name} item={item} isActive={isActive} index={index} />
           })}
         </nav>

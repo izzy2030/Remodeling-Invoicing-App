@@ -243,7 +243,7 @@ function SettingsContent() {
                   type="text"
                   value={settings.company_name}
                   onChange={(e) => setSettings({ ...settings, company_name: e.target.value })}
-                  className="input-field pl-11"
+                  className="input-field !pl-11"
                   placeholder="Apex Remodeling LLC"
                 />
               </div>
@@ -259,7 +259,7 @@ function SettingsContent() {
                     type="email"
                     value={settings.company_email}
                     onChange={(e) => setSettings({ ...settings, company_email: e.target.value })}
-                    className="input-field pl-11"
+                    className="input-field !pl-11"
                     placeholder="hello@apex.com"
                   />
                 </div>
@@ -272,7 +272,7 @@ function SettingsContent() {
                     type="text"
                     value={settings.company_phone}
                     onChange={(e) => setSettings({ ...settings, company_phone: e.target.value })}
-                    className="input-field pl-11"
+                    className="input-field !pl-11"
                     placeholder="(555) 000-0000"
                   />
                 </div>
@@ -287,7 +287,7 @@ function SettingsContent() {
                 <textarea
                   value={settings.company_address}
                   onChange={(e) => setSettings({ ...settings, company_address: e.target.value })}
-                  className="input-field pl-11 py-3 min-h-[100px] resize-none"
+                  className="input-field !pl-11 py-3 min-h-[100px] resize-none"
                   placeholder="123 Builder St, Suite 100&#10;City, State 12345"
                 />
               </div>
@@ -303,7 +303,7 @@ function SettingsContent() {
                   step="0.01"
                   value={settings.default_tax_rate}
                   onChange={(e) => setSettings({ ...settings, default_tax_rate: parseFloat(e.target.value) || 0 })}
-                  className="input-field pl-11"
+                  className="input-field !pl-11"
                   placeholder="8.25"
                 />
               </div>
