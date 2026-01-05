@@ -58,6 +58,12 @@ export default function NewInvoicePage() {
 
     if (clientsRes.data) setClients(clientsRes.data)
     if (settingsRes.data) {
+      // Check if setup is needed
+      if (!settingsRes.data.company_name) {
+        router.push('/settings?onboarding=true')
+        return
+      }
+
       setSettings(settingsRes.data)
       setInvoice(prev => ({
         ...prev,
@@ -65,7 +71,13 @@ export default function NewInvoicePage() {
         tax_rate: settingsRes.data.default_tax_rate ?? 0,
         notes: settingsRes.data.default_notes ?? ''
       }))
+    } else {
+      // No settings row exists yet
+      router.push('/settings?onboarding=true')
+      return
     }
+
+    // Check for AI-generated invoice data
 
     // Check for AI-generated invoice data
     const aiData = sessionStorage.getItem('ai_invoice_data')
@@ -187,7 +199,19 @@ export default function NewInvoicePage() {
       materials_line2_amount: material2Combined.amount,
     }
 
-    const { error } = await supabase.from('invoices').insert([invoiceData])
+    // Get current user for RLS
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+      alert('You must be logged in to create invoices')
+      setLoading(false)
+      return
+    }
+
+    const { error } = await supabase.from('invoices').insert([{
+      ...invoiceData,
+      user_id: user.id
+    }])
 
     if (error) {
       alert('Error creating invoice')

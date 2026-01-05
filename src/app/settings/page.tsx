@@ -92,10 +92,19 @@ function SettingsContent() {
   const handleSave = async () => {
     setLoading(true)
     setMessage('')
+    if (!user) {
+      setMessage('Error: No user found')
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase
       .from('settings')
-      .update(settings)
-      .eq('id', 1)
+      .upsert({
+        ...settings,
+        id: 1,
+        user_id: user.id
+      })
 
     if (error) {
       setMessage('Error saving settings')

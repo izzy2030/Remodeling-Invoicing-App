@@ -44,11 +44,27 @@ export default function ClientsPage() {
 
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { error } = await supabase.from('clients').insert([newClient])
+    
+    // Get current user for RLS
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      alert('You must be logged in to add clients')
+      return
+    }
+
+    const { error } = await supabase.from('clients').insert([{
+      ...newClient,
+      user_id: user.id
+    }])
+
     if (!error) {
       setShowModal(false)
       setNewClient({ name: '', email: '', phone: '', address: '' })
       fetchClients()
+    } else {
+      console.error('Error adding client:', error)
+      alert('Failed to add client')
     }
   }
 

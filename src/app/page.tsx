@@ -46,6 +46,11 @@ export default function DashboardPage() {
       supabase.from('settings').select('*').eq('id', 1).single()
     ])
 
+    if (!settingsRes.data || !settingsRes.data.company_name) {
+      router.push('/settings?onboarding=true')
+      return
+    }
+
     setUser(currentUser)
 
     if (invoicesRes.data) {
