@@ -70,7 +70,7 @@ export default function InvoicesPage() {
       style={{ animationDelay: `${delay}s` }}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center shadow-lg shadow-black/5 ${gradient}`}>
+        <div className={`w-11 h-11 rounded-md flex items-center justify-center ${gradient}`}>
           <Icon className="w-5 h-5 text-white" />
         </div>
         <div className="w-16 h-8 relative overflow-hidden opacity-60">
@@ -152,7 +152,7 @@ export default function InvoicesPage() {
           <input
             type="text"
             placeholder="Search invoices by client or number..."
-            className="input-field pl-11 shadow-sm focus:shadow-md h-14"
+            className="input-field pl-11 h-14"
           />
         </div>
         <div className="flex gap-2">
@@ -165,17 +165,17 @@ export default function InvoicesPage() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-64">
-               <div className="space-y-3">
-                 <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Filter by Status</p>
-                 <div className="space-y-1.5">
-                   {['All', 'Paid', 'Pending', 'Overdue'].map(status => (
-                     <button key={status} className="w-full text-left px-3 py-2 rounded-xl text-sm font-bold hover:bg-secondary transition-colors flex items-center justify-between group">
-                       {status}
-                       <div className="w-4 h-4 rounded-full border border-border group-hover:border-primary/50 transition-colors" />
-                     </button>
-                   ))}
-                 </div>
-               </div>
+              <div className="space-y-3">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Filter by Status</p>
+                <div className="space-y-1.5">
+                  {['All', 'Paid', 'Pending', 'Overdue'].map(status => (
+                    <button key={status} className="w-full text-left px-3 py-2 rounded text-sm font-bold hover:bg-secondary flex items-center justify-between group">
+                      {status}
+                      <div className="w-4 h-4 rounded-full border border-border group-hover:border-primary/50 transition-colors" />
+                    </button>
+                  ))}
+                </div>
+              </div>
             </PopoverContent>
           </Popover>
 
@@ -190,8 +190,8 @@ export default function InvoicesPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 space-y-4">
           <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
-            <div className="relative bg-gradient-to-br from-primary to-accent p-4 rounded-2xl">
+            <div className="absolute inset-0 bg-primary/20 rounded-md blur-xl" />
+            <div className="relative bg-gradient-to-br from-primary to-accent p-4 rounded-md">
               <Loader2 className="w-8 h-8 text-primary-foreground animate-spin" />
             </div>
           </div>
@@ -206,20 +206,20 @@ export default function InvoicesPage() {
             return (
               <div
                 key={invoice.id}
-                className="card-premium p-5 group animate-fade-up hover:scale-[1.01] active:scale-[0.99]"
+                className="card-premium p-5 group animate-fade-up"
                 style={{ animationDelay: `${0.3 + (index * 0.03)}s` }}
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
                   {/* Client Info */}
                   <div className="flex items-center gap-4 flex-1">
-                    <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary/50 rounded-xl flex items-center justify-center font-bold text-muted-foreground border border-border group-hover:from-primary/10 group-hover:to-accent/10 group-hover:text-primary transition-all duration-500 shadow-sm">
+                    <div className="w-12 h-12 bg-gradient-to-br from-secondary to-secondary/50 rounded-md flex items-center justify-center font-bold text-muted-foreground border border-border">
                       {invoice.clients?.name?.substring(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-bold text-foreground group-hover:text-primary transition-colors text-base tracking-tight truncate">
+                      <h4 className="font-bold text-foreground text-base tracking-tight truncate">
                         {invoice.clients?.name}
                       </h4>
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-secondary px-2 py-0.5 rounded-md w-fit mt-1 border border-border">
+                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest bg-secondary px-2 py-0.5 rounded w-fit mt-1 border border-border">
                         {invoice.invoice_number}
                       </p>
                     </div>
@@ -254,7 +254,7 @@ export default function InvoicesPage() {
                           <Eye className="w-4 h-4" />
                         </Link>
                       </Button>
-                      
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="secondary" size="icon" className="h-10 w-10">
@@ -291,8 +291,8 @@ export default function InvoicesPage() {
 
           {/* Empty State */}
           {invoices.length === 0 && (
-            <div className="bg-card rounded-[2rem] border-2 border-dashed border-border p-16 text-center space-y-6 animate-fade-up">
-              <div className="w-20 h-20 bg-gradient-to-br from-secondary to-secondary/50 rounded-2xl flex items-center justify-center mx-auto border border-border">
+            <div className="bg-card rounded-lg border-2 border-dashed border-border p-16 text-center space-y-6 animate-fade-up">
+              <div className="w-20 h-20 bg-gradient-to-br from-secondary to-secondary/50 rounded-md flex items-center justify-center mx-auto border border-border">
                 <FileText className="w-10 h-10 text-muted-foreground/30" />
               </div>
               <div>
@@ -301,10 +301,10 @@ export default function InvoicesPage() {
                   Get started by creating your first professional invoice for your remodeling projects.
                 </p>
               </div>
-              <Button asChild size="lg" className="rounded-2xl px-12 h-14 group">
+              <Button asChild size="lg" className="rounded-md px-12 h-14">
                 <Link href="/invoices/new" className="flex items-center gap-2">
                   Create First Invoice
-                  <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  <ArrowUpRight className="w-4 h-4" />
                 </Link>
               </Button>
             </div>

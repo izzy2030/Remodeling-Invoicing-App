@@ -60,7 +60,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <input
                     type="text"
                     placeholder="Search..."
-                    className="h-10 pl-10 pr-14 bg-card border border-border focus:bg-card focus:border-primary rounded-xl text-sm w-56 outline-none transition-all text-foreground font-medium placeholder:text-muted-foreground shadow-sm group-hover:shadow-md"
+                    className="h-10 pl-10 pr-14 bg-card border border-border focus:bg-card focus:border-primary rounded-md text-sm w-56 outline-none text-foreground font-medium placeholder:text-muted-foreground"
                   />
                   <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 px-1.5 py-1 bg-secondary border border-border rounded-md">
                     <Command className="w-2.5 h-2.5 text-muted-foreground" />
@@ -82,10 +82,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                         <h4 className="font-syne font-bold">Select Date Range</h4>
                         <p className="text-xs text-muted-foreground">This feature will allow you to filter dashboard data by specific dates.</p>
                         <div className="grid grid-cols-2 gap-2">
-                           <Button variant="secondary" size="sm" className="h-9">Today</Button>
-                           <Button variant="secondary" size="sm" className="h-9">This Week</Button>
-                           <Button variant="secondary" size="sm" className="h-9">This Month</Button>
-                           <Button variant="secondary" size="sm" className="h-9">All Time</Button>
+                          <Button variant="secondary" size="sm" className="h-9">Today</Button>
+                          <Button variant="secondary" size="sm" className="h-9">This Week</Button>
+                          <Button variant="secondary" size="sm" className="h-9">This Month</Button>
+                          <Button variant="secondary" size="sm" className="h-9">All Time</Button>
                         </div>
                       </div>
                     </PopoverContent>
@@ -93,22 +93,22 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
                   <Popover>
                     <PopoverTrigger asChild>
-                      <button className="h-10 w-10 bg-card border border-border rounded-xl flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground transition-all relative group shadow-sm active:scale-95">
-                        <Bell className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+                      <button className="h-10 w-10 bg-card border border-border rounded-md flex items-center justify-center text-muted-foreground hover:bg-secondary hover:text-foreground relative group">
+                        <Bell className="w-4 h-4" />
                         <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-card" />
                       </button>
                     </PopoverTrigger>
                     <PopoverContent align="end" className="w-80 p-0 overflow-hidden">
-                       <div className="p-4 border-b border-border bg-secondary/30">
-                         <h4 className="font-bold text-sm">Notifications</h4>
-                       </div>
-                       <div className="p-4 py-8 text-center space-y-2">
-                         <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mx-auto">
-                            <Bell className="w-6 h-6 text-muted-foreground/40" />
-                         </div>
-                         <p className="text-sm font-bold">All caught up!</p>
-                         <p className="text-xs text-muted-foreground">No new notifications at this time.</p>
-                       </div>
+                      <div className="p-4 border-b border-border bg-secondary/30">
+                        <h4 className="font-bold text-sm">Notifications</h4>
+                      </div>
+                      <div className="p-4 py-8 text-center space-y-2">
+                        <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mx-auto">
+                          <Bell className="w-6 h-6 text-muted-foreground/40" />
+                        </div>
+                        <p className="text-sm font-bold">All caught up!</p>
+                        <p className="text-xs text-muted-foreground">No new notifications at this time.</p>
+                      </div>
                     </PopoverContent>
                   </Popover>
 

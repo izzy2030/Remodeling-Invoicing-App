@@ -174,9 +174,9 @@ export default function AIInvoicePage() {
         <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
           <button
             onClick={() => router.push('/invoices')}
-            className="p-2 hover:bg-secondary rounded-xl transition-colors flex items-center gap-2 text-muted-foreground group"
+            className="p-2 hover:bg-secondary rounded-md flex items-center gap-2 text-muted-foreground group"
           >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <ArrowLeft className="w-4 h-4" />
             <span className="text-sm font-medium">Back</span>
           </button>
 
@@ -191,8 +191,8 @@ export default function AIInvoicePage() {
           <div className="flex-1 flex flex-col items-center justify-center py-16 space-y-10 animate-fade-up">
             {/* Logo */}
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/30 to-purple-600/30 rounded-2xl blur-xl" />
-              <div className="relative bg-gradient-to-br from-violet-500 to-purple-600 p-4 rounded-2xl shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-500/30 to-purple-600/30 rounded-md blur-xl" />
+              <div className="relative bg-gradient-to-br from-violet-500 to-purple-600 p-4 rounded-md">
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
             </div>
@@ -213,9 +213,9 @@ export default function AIInvoicePage() {
                 <button
                   key={action.label}
                   onClick={() => setInput(action.prompt)}
-                  className="flex items-center gap-2.5 px-5 py-3 bg-transparent border border-border rounded-xl text-sm font-semibold text-foreground hover:bg-secondary hover:border-primary/20 transition-all group"
+                  className="flex items-center gap-2.5 px-5 py-3 bg-transparent border border-border rounded-md text-sm font-semibold text-foreground hover:bg-secondary group"
                 >
-                  <action.icon className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <action.icon className="w-4 h-4 text-muted-foreground" />
                   {action.label}
                 </button>
               ))}
@@ -236,16 +236,15 @@ export default function AIInvoicePage() {
                 style={{ animationDelay: `${i * 0.05}s` }}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg shadow-violet-500/20">
+                  <div className="w-9 h-9 rounded-md bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                     <Sparkles className="w-4 h-4 text-white" />
                   </div>
                 )}
                 <div
-                  className={`max-w-[75%] px-5 py-3.5 rounded-2xl text-sm leading-relaxed ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground rounded-br-md shadow-lg shadow-primary/20'
-                      : 'bg-secondary/30 backdrop-blur-sm text-foreground rounded-bl-md'
-                  }`}
+                  className={`max-w-[75%] px-5 py-3.5 rounded-lg text-sm leading-relaxed ${message.role === 'user'
+                      ? 'bg-primary text-primary-foreground rounded-br-sm'
+                      : 'bg-secondary/30 backdrop-blur-sm text-foreground rounded-bl-sm'
+                    }`}
                 >
                   {message.content.includes('```invoice_data') ? (
                     <div className="space-y-3">
@@ -260,7 +259,7 @@ export default function AIInvoicePage() {
                   )}
                 </div>
                 {message.role === 'user' && (
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-secondary to-secondary/50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-border">
+                  <div className="w-9 h-9 rounded-md bg-gradient-to-br from-secondary to-secondary/50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-border">
                     {user?.user_metadata?.avatar_url ? (
                       <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
                     ) : (
@@ -274,10 +273,10 @@ export default function AIInvoicePage() {
             {/* Loading indicator */}
             {isLoading && messages[messages.length - 1]?.role === 'user' && (
               <div className="flex gap-3 animate-fade-up">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20">
+                <div className="w-9 h-9 rounded-md bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-secondary/30 backdrop-blur-sm px-5 py-4 rounded-2xl rounded-bl-md">
+                <div className="bg-secondary/30 backdrop-blur-sm px-5 py-4 rounded-lg rounded-bl-sm">
                   <div className="flex items-center gap-1.5">
                     {[0, 1, 2].map(i => (
                       <div
@@ -299,7 +298,7 @@ export default function AIInvoicePage() {
       <footer className="sticky bottom-0 pt-6 pb-8 px-6">
         <div className="max-w-4xl mx-auto">
           <form onSubmit={handleSubmit} className="relative">
-            <div className="bg-card/50 backdrop-blur-xl border border-border rounded-2xl shadow-2xl overflow-hidden focus-within:border-primary/50 transition-all">
+            <div className="bg-card/50 backdrop-blur-xl border border-border rounded-lg overflow-hidden focus-within:border-primary/50">
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -314,9 +313,9 @@ export default function AIInvoicePage() {
                 <button
                   type="button"
                   onClick={handleMicClick}
-                  className={`p-2.5 rounded-xl transition-all ${isListening
-                      ? 'bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  className={`p-2.5 rounded-md ${isListening
+                    ? 'bg-red-500 text-white'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
                     }`}
                 >
                   <Mic className="w-5 h-5" />
@@ -324,7 +323,7 @@ export default function AIInvoicePage() {
                 <button
                   type="submit"
                   disabled={!input.trim() || isLoading}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-all shadow-lg shadow-primary/20 font-semibold text-sm"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-md disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 font-semibold text-sm"
                 >
                   <Send className="w-4 h-4" />
                   <span className="hidden sm:inline">Send</span>

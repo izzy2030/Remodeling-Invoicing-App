@@ -54,9 +54,9 @@ export default function ClientsPage() {
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    
+
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       alert('You must be logged in to add clients')
       setSubmitting(false)
@@ -93,7 +93,7 @@ export default function ClientsPage() {
 
         <Dialog open={showModal} onOpenChange={setShowModal}>
           <DialogTrigger asChild>
-            <Button className="h-14 px-8 copper-glow">
+            <Button className="h-14 px-8">
               <UserPlus className="w-4 h-4 mr-2" />
               Add Client
             </Button>
@@ -185,7 +185,7 @@ export default function ClientsPage() {
           <input
             type="text"
             placeholder="Search by name, email or location..."
-            className="input-field !pl-11 h-14 shadow-sm"
+            className="input-field !pl-11 h-14"
           />
         </div>
         <Button variant="outline" className="h-14 px-6 font-semibold">
@@ -198,8 +198,8 @@ export default function ClientsPage() {
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 space-y-4">
           <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-2xl blur-xl animate-pulse" />
-            <div className="relative bg-gradient-to-br from-primary to-accent p-4 rounded-2xl">
+            <div className="absolute inset-0 bg-primary/20 rounded-md blur-xl" />
+            <div className="relative bg-gradient-to-br from-primary to-accent p-4 rounded-md">
               <Loader2 className="w-8 h-8 text-primary-foreground animate-spin" />
             </div>
           </div>
@@ -210,22 +210,22 @@ export default function ClientsPage() {
           {clients.map((client, index) => (
             <div
               key={client.id}
-              className="card-premium p-6 group animate-fade-up hover:scale-[1.01] active:scale-[0.99]"
+              className="card-premium p-6 group animate-fade-up"
               style={{ animationDelay: `${0.15 + (index * 0.05)}s` }}
             >
               {/* Header with Avatar & Actions */}
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-4">
-                  <Avatar className="h-14 w-14 rounded-2xl border-2 border-transparent group-hover:border-primary/20 transition-all shadow-sm">
+                  <Avatar className="h-14 w-14 rounded-md border-2 border-transparent">
                     <AvatarFallback className="text-lg bg-gradient-to-br from-secondary to-muted">
                       {client.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="text-lg font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
+                    <h3 className="text-lg font-bold text-foreground leading-tight">
                       {client.name}
                     </h3>
-                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 bg-secondary px-2 py-0.5 rounded-md inline-block">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1 bg-secondary px-2 py-0.5 rounded inline-block">
                       Legacy Client
                     </p>
                   </div>
@@ -259,19 +259,19 @@ export default function ClientsPage() {
               {/* Contact Info */}
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-3 group/item">
-                  <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover/item:text-primary group-hover/item:bg-primary/10 transition-all">
+                  <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center text-muted-foreground">
                     <Mail className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium text-foreground truncate">{client.email}</span>
                 </div>
                 <div className="flex items-center gap-3 group/item">
-                  <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover/item:text-primary group-hover/item:bg-primary/10 transition-all">
+                  <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center text-muted-foreground">
                     <Phone className="w-4 h-4" />
                   </div>
                   <span className="text-sm font-medium text-foreground">{client.phone || 'No phone provided'}</span>
                 </div>
                 <div className="flex items-center gap-3 group/item">
-                  <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover/item:text-primary group-hover/item:bg-primary/10 transition-all">
+                  <div className="w-8 h-8 rounded bg-secondary flex items-center justify-center text-muted-foreground">
                     <MapPin className="w-4 h-4" />
                   </div>
                   <TooltipProvider>
@@ -291,7 +291,7 @@ export default function ClientsPage() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="w-9 h-9 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center border border-emerald-500/20">
+                        <div className="w-9 h-9 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md flex items-center justify-center border border-emerald-500/20">
                           <CreditCard className="w-4.5 h-4.5" />
                         </div>
                       </TooltipTrigger>
@@ -301,7 +301,7 @@ export default function ClientsPage() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="w-9 h-9 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center border border-blue-500/20">
+                        <div className="w-9 h-9 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center border border-blue-500/20">
                           <Briefcase className="w-4.5 h-4.5" />
                         </div>
                       </TooltipTrigger>
@@ -311,7 +311,7 @@ export default function ClientsPage() {
                 </div>
                 <Button variant="ghost" size="sm" className="font-bold text-primary uppercase tracking-widest text-[10px] h-9">
                   View Profile
-                  <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>
               </div>
             </div>
@@ -319,8 +319,8 @@ export default function ClientsPage() {
 
           {/* Empty State */}
           {clients.length === 0 && (
-            <div className="col-span-full bg-card rounded-[2rem] border-2 border-dashed border-border p-16 text-center space-y-6 animate-fade-up">
-              <div className="w-20 h-20 bg-gradient-to-br from-secondary to-secondary/50 rounded-2xl flex items-center justify-center mx-auto border border-border">
+            <div className="col-span-full bg-card rounded-lg border-2 border-dashed border-border p-16 text-center space-y-6 animate-fade-up">
+              <div className="w-20 h-20 bg-gradient-to-br from-secondary to-secondary/50 rounded-md flex items-center justify-center mx-auto border border-border">
                 <Users className="w-10 h-10 text-muted-foreground/30" />
               </div>
               <div>
@@ -329,7 +329,7 @@ export default function ClientsPage() {
                   Start building your client network by adding your first customer.
                 </p>
               </div>
-              <Button onClick={() => setShowModal(true)} size="lg" className="rounded-2xl px-12 h-14">
+              <Button onClick={() => setShowModal(true)} size="lg" className="rounded-md px-12 h-14">
                 Add Your First Client
               </Button>
             </div>

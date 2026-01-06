@@ -14,18 +14,18 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'primary', size = 'md', asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : 'button'
-    
-    // Base styles from the COPPER & CRAFT design system
-    const baseStyles = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-bold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]"
-    
+
+    // Base styles from the COPPER & CRAFT design system - Premium minimal look
+    const baseStyles = "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-bold ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+
     const variants = {
-      primary: "bg-primary text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5",
+      primary: "bg-primary text-white hover:opacity-90",
       secondary: "bg-secondary text-secondary-foreground hover:bg-muted font-bold",
-      outline: "border border-border bg-transparent hover:bg-secondary text-foreground hover:border-primary/30",
+      outline: "border border-border bg-transparent hover:bg-secondary text-foreground",
       ghost: "hover:bg-secondary text-muted-foreground hover:text-foreground",
-      destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-lg shadow-destructive/10",
+      destructive: "bg-destructive text-destructive-foreground hover:opacity-90",
     }
-    
+
     const sizes = {
       sm: "h-9 px-3 text-xs",
       md: "h-12 px-6",

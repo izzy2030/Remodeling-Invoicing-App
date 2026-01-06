@@ -46,7 +46,7 @@ export default function LoginPage() {
       }} />
 
       {/* Main Container */}
-      <div className="relative max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 bg-card rounded-[2.5rem] shadow-2xl shadow-black/5 overflow-hidden border border-border animate-scale-in">
+      <div className="relative max-w-5xl w-full grid grid-cols-1 lg:grid-cols-2 bg-card rounded-lg overflow-hidden border border-border animate-scale-in">
 
         {/* Left Side: Login Form */}
         <div className="flex flex-col justify-center px-8 sm:px-12 lg:px-16 py-16 relative">
@@ -55,8 +55,8 @@ export default function LoginPage() {
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-xl blur-lg opacity-50 group-hover:opacity-70 transition-opacity" />
-                <div className="relative bg-gradient-to-br from-primary to-accent p-2.5 rounded-xl shadow-lg">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-md blur-lg opacity-50" />
+                <div className="relative bg-gradient-to-br from-primary to-accent p-2.5 rounded-md">
                   <Hammer className="w-6 h-6 text-primary-foreground" />
                 </div>
               </div>
@@ -82,7 +82,7 @@ export default function LoginPage() {
               <button
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-                className="w-full h-14 flex items-center justify-between px-6 bg-card border border-border text-foreground font-semibold rounded-xl hover:border-primary hover:bg-secondary transition-all group disabled:opacity-50"
+                className="w-full h-14 flex items-center justify-between px-6 bg-card border border-border text-foreground font-semibold rounded-md hover:border-primary hover:bg-secondary group disabled:opacity-50"
               >
                 <div className="flex items-center gap-3">
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -105,15 +105,15 @@ export default function LoginPage() {
                   </svg>
                   <span className="text-sm">Continue with Google</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
               </button>
 
-              <button className="w-full h-14 flex items-center justify-between px-6 bg-foreground text-background font-semibold rounded-xl hover:opacity-90 transition-all group shadow-lg shadow-foreground/10">
+              <button className="w-full h-14 flex items-center justify-between px-6 bg-foreground text-background font-semibold rounded-md hover:opacity-90 group">
                 <div className="flex items-center gap-3">
                   <Github className="w-5 h-5" />
                   <span className="text-sm">Continue with GitHub</span>
                 </div>
-                <ArrowRight className="w-4 h-4 text-background/50 group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="w-4 h-4 text-background/50" />
               </button>
             </div>
 
@@ -127,7 +127,7 @@ export default function LoginPage() {
 
         {/* Right Side: Showcase */}
         <div className="hidden lg:block relative bg-gradient-to-br from-secondary/50 to-secondary/30 p-6">
-          <div className="h-full w-full bg-gradient-to-br from-primary via-primary to-accent rounded-[2rem] overflow-hidden flex flex-col justify-end p-12 relative grain">
+          <div className="h-full w-full bg-gradient-to-br from-primary via-primary to-accent rounded-lg overflow-hidden flex flex-col justify-end p-12 relative grain">
 
             {/* Decorative elements */}
             <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[400px] h-[400px] bg-white/10 rounded-full blur-[100px]" />
@@ -141,9 +141,9 @@ export default function LoginPage() {
 
             {/* Floating decorative cards */}
             <div className="absolute top-12 right-12 animate-float" style={{ animationDelay: '0s' }}>
-              <div className="w-48 h-32 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-4 shadow-2xl">
+              <div className="w-48 h-32 bg-white/10 backdrop-blur-md rounded-md border border-white/20 p-4">
                 <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center">
                     <Sparkles className="w-4 h-4 text-white" />
                   </div>
                   <span className="text-white/80 text-xs font-bold">AI Invoice</span>
@@ -157,7 +157,7 @@ export default function LoginPage() {
             </div>
 
             <div className="absolute top-32 left-8 animate-float" style={{ animationDelay: '0.5s' }}>
-              <div className="w-36 h-24 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-3 shadow-xl">
+              <div className="w-36 h-24 bg-white/10 backdrop-blur-md rounded-md border border-white/20 p-3">
                 <p className="text-[10px] font-bold text-white/60 uppercase tracking-wider mb-1">Revenue</p>
                 <p className="text-white font-bold text-lg font-syne">$24,580</p>
                 <div className="flex items-center gap-1 mt-1">
@@ -184,7 +184,7 @@ export default function LoginPage() {
 
               {/* Author */}
               <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-white/15 backdrop-blur-md rounded-xl border border-white/20 flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-14 h-14 bg-white/15 backdrop-blur-md rounded-md border border-white/20 flex items-center justify-center text-white font-bold text-lg">
                   M
                 </div>
                 <div>

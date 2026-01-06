@@ -61,26 +61,22 @@ export default function Sidebar() {
           <Link
             href={item.href}
             className={`
-              flex items-center gap-3.5 px-4 py-3 rounded-xl transition-all duration-300 group relative overflow-hidden
+              flex items-center gap-3.5 px-4 py-3 rounded-md group relative overflow-hidden
               ${isActive
-                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
+                ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
               }
             `}
-            style={{ animationDelay: `${index * 0.05}s` }}
           >
             {/* Active indicator line */}
             {isActive && (
               <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary-foreground/40 rounded-r-full" />
             )}
 
-            <item.icon className={`w-[18px] h-[18px] transition-transform duration-300 ${isActive ? '' : 'group-hover:scale-110'}`} />
+            <item.icon className="w-[18px] h-[18px]" />
             <span className="font-semibold text-[13px] tracking-tight">{item.name}</span>
 
-            {/* Shimmer effect on hover */}
-            {!isActive && (
-              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/5 to-transparent" />
-            )}
+
           </Link>
         </TooltipTrigger>
         <TooltipContent side="right">
@@ -96,8 +92,8 @@ export default function Sidebar() {
       <div className="p-6 pb-8">
         <div className="flex items-center gap-3.5">
           <div className="relative group">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-xl blur-lg opacity-50 group-hover:opacity-70 transition-opacity" />
-            <div className="relative bg-gradient-to-br from-primary to-accent p-2.5 rounded-xl shadow-lg">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-accent rounded-md blur-lg opacity-50" />
+            <div className="relative bg-gradient-to-br from-primary to-accent p-2.5 rounded-md">
               <Hammer className="w-5 h-5 text-primary-foreground" />
             </div>
           </div>
@@ -116,8 +112,8 @@ export default function Sidebar() {
         <nav className="space-y-1">
           {mainNav.map((item, index) => {
             const isActive = pathname === item.href || (
-              item.href !== '/' && 
-              pathname.startsWith(item.href) && 
+              item.href !== '/' &&
+              pathname.startsWith(item.href) &&
               (item.href === '/invoices' ? pathname !== '/invoices/ai' : true)
             )
             return <NavItem key={item.name} item={item} isActive={isActive} index={index} />
@@ -125,14 +121,14 @@ export default function Sidebar() {
         </nav>
 
         {/* Stats mini-card */}
-        <div className="mt-8 mx-1 p-4 rounded-2xl bg-gradient-to-br from-secondary to-secondary/50 border border-border relative overflow-hidden group">
-          <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+        <div className="mt-8 mx-1 p-4 rounded-md bg-gradient-to-br from-secondary to-secondary/50 border border-border relative overflow-hidden">
+          <div className="absolute -right-4 -bottom-4 opacity-5">
             <TrendingUp className="w-20 h-20" />
           </div>
           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-2">This Month</p>
           <p className="text-2xl font-bold text-foreground font-syne tracking-tight">$12,450</p>
           <div className="flex items-center gap-1.5 mt-1">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-emerald-500" />
             <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">+18% growth</p>
           </div>
         </div>
@@ -142,8 +138,8 @@ export default function Sidebar() {
       <div className="mt-auto p-4 border-t border-border">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 p-2 rounded-2xl hover:bg-secondary transition-all cursor-pointer group active:scale-95">
-              <Avatar className="h-10 w-10 border-2 border-transparent group-hover:border-primary/20 transition-all">
+            <div className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary cursor-pointer group">
+              <Avatar className="h-10 w-10 border-2 border-transparent">
                 <AvatarImage src={user?.user_metadata?.avatar_url} />
                 <AvatarFallback>
                   {user?.user_metadata?.full_name?.substring(0, 2).toUpperCase() || <User className="w-5 h-5" />}
@@ -171,7 +167,7 @@ export default function Sidebar() {
               Billing & Plan
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={handleSignOut}
               className="text-destructive focus:bg-destructive/10 focus:text-destructive"
             >
@@ -190,7 +186,7 @@ export default function Sidebar() {
       <header className="fixed top-0 left-0 right-0 h-16 bg-card/80 backdrop-blur-xl border-b border-border md:hidden z-50">
         <div className="h-full px-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-primary to-accent p-2 rounded-xl shadow-sm">
+            <div className="bg-gradient-to-br from-primary to-accent p-2 rounded-md">
               <Hammer className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="font-syne font-extrabold text-foreground text-lg">Flow</span>
@@ -200,7 +196,7 @@ export default function Sidebar() {
             <Dialog open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
               <DialogTrigger asChild>
                 <button
-                  className="w-10 h-10 flex items-center justify-center text-muted-foreground rounded-xl hover:bg-secondary transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-muted-foreground rounded-md hover:bg-secondary"
                 >
                   <Menu className="w-5 h-5" />
                 </button>
@@ -209,7 +205,7 @@ export default function Sidebar() {
                 <div className="p-4 absolute top-0 right-0 z-50">
                   <button
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:bg-secondary rounded-xl transition-colors"
+                    className="w-10 h-10 flex items-center justify-center text-muted-foreground hover:bg-secondary rounded-md"
                   >
                     <X className="w-5 h-5" />
                   </button>

@@ -30,7 +30,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
-      <body className="font-dm-sans min-h-screen bg-background text-foreground antialiased">
+      <body className="font-dm-sans min-h-screen bg-background text-foreground antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <AppShell>
             {children}
