@@ -231,7 +231,7 @@ export default function NewInvoicePage() {
   const { subtotal, tax, grandTotal } = calculateTotals()
 
   const StepIndicator = ({ current, total, label }: { current: number, total: number, label: string }) => (
-    <div className="bg-background/60 backdrop-blur-sm border-b border-border/40 px-4 sm:px-6 py-4 sm:py-6 transition-all">
+    <div className="bg-background/60 backdrop-blur-sm border-b border-border/40 px-2 sm:px-6 py-4 sm:py-6 transition-all">
       <div className="max-w-3xl mx-auto space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-0">
           <div className="flex flex-col gap-1">
@@ -255,7 +255,7 @@ export default function NewInvoicePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       {/* Header */}
-      <header className="bg-background/80 backdrop-blur-xl border-b border-border/40 h-16 sm:h-20 flex items-center px-4 sm:px-6 sticky top-0 z-50 transition-all">
+      <header className="bg-background/80 backdrop-blur-xl border-b border-border/40 h-16 sm:h-20 flex items-center px-2 sm:px-6 sticky top-0 z-50 transition-all">
         <div className="max-w-3xl mx-auto w-full flex items-center justify-between">
           <Button
             variant="ghost"
@@ -293,7 +293,7 @@ export default function NewInvoicePage() {
 
       {/* Main Content */}
       <main className="flex-1 pb-12">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <div className="max-w-3xl mx-auto px-2 sm:px-6 py-6 sm:py-8">
 
           {/* Step 1: Invoice Details */}
           {step === 1 && (
@@ -364,7 +364,9 @@ export default function NewInvoicePage() {
               <div className="pt-6">
                 <Button
                   onClick={() => setStep(2)}
-                  className="w-full h-12 sm:h-14 text-sm sm:text-base font-bold rounded-md"
+                  variant="premium"
+                  size="premium"
+                  className="w-full"
                 >
                   Continue to Items
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -584,7 +586,9 @@ export default function NewInvoicePage() {
                 </Button>
                 <Button
                   onClick={() => setStep(3)}
-                  className="flex-1 h-12 sm:h-14 text-sm sm:text-base font-bold rounded-md"
+                  variant="premium"
+                  size="premium"
+                  className="flex-1"
                 >
                   Continue to Review
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
@@ -689,7 +693,9 @@ export default function NewInvoicePage() {
                   <Button
                     onClick={handleSave}
                     disabled={loading}
-                    className="flex-1 h-12 sm:h-14 text-sm sm:text-base font-bold rounded-md"
+                    variant="premium"
+                    size="premium"
+                    className="flex-1"
                   >
                     {loading ? (
                       <>
