@@ -44,7 +44,7 @@ export default function NewInvoicePage() {
     client_id: '',
     invoice_number: '',
     invoice_date: new Date().toISOString().split('T')[0],
-    due_date: '',
+    due_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default due in 14 days
     project_description: '',
     tax_rate: 0,
     notes: ''
@@ -59,8 +59,20 @@ export default function NewInvoicePage() {
   ])
 
   useEffect(() => {
+    window.scrollTo(0, 0)
     fetchData()
   }, [])
+
+  useEffect(() => {
+    // Scroll to the top of the form when step changes
+    const element = document.getElementById('step-content')
+    if (element) {
+      // Small timeout to ensure DOM has updated
+      setTimeout(() => {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }, [step])
 
   const fetchData = async () => {
     const [clientsRes, settingsRes] = await Promise.all([
@@ -173,6 +185,18 @@ export default function NewInvoicePage() {
   }
 
   const handleSave = async () => {
+    // Validation
+    if (!invoice.client_id) {
+      alert('Missing Client: Please select a client in Step 1.')
+      setStep(1)
+      return
+    }
+    if (!invoice.due_date) {
+      alert('Missing Due Date: Please select a due date in Step 1.')
+      setStep(1)
+      return
+    }
+
     setLoading(true)
 
     const labor1 = laborItems[0] || { description: '', amount: 0 }
@@ -205,6 +229,8 @@ export default function NewInvoicePage() {
       materials_line2_amount: material2Combined.amount,
     }
 
+    console.log('Submitting invoice data:', invoiceData)
+
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {
@@ -219,8 +245,8 @@ export default function NewInvoicePage() {
     }])
 
     if (error) {
-      console.error(error)
-      alert('Error creating invoice')
+      console.error('Supabase Invoicing Error:', error.message, error.details, error.hint, error)
+      alert(`Error creating invoice: ${error.message}`)
     } else {
       await supabase.from('settings').update({ next_invoice_number: settings.next_invoice_number + 1 }).eq('id', 1)
       router.push('/')
@@ -260,7 +286,7 @@ export default function NewInvoicePage() {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.back()}
+            onClick={() => router.push('/')}
             className="rounded-full h-10 w-10 hover:bg-secondary/50 hover:text-foreground text-muted-foreground transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -276,7 +302,7 @@ export default function NewInvoicePage() {
 
           <Button
             variant="ghost"
-            onClick={() => router.back()}
+            onClick={() => router.push('/')}
             className="font-bold text-muted-foreground hover:text-destructive hover:bg-destructive/5 rounded-md text-[10px] sm:text-xs px-3 sm:px-4 h-8 sm:h-9 uppercase tracking-wide transition-colors"
           >
             Cancel
@@ -293,7 +319,7 @@ export default function NewInvoicePage() {
 
       {/* Main Content */}
       <main className="flex-1 pb-12">
-        <div className="max-w-3xl mx-auto px-2 sm:px-6 py-6 sm:py-8">
+        <div id="step-content" className="max-w-3xl mx-auto px-2 sm:px-6 py-6 sm:py-8 scroll-mt-28">
 
           {/* Step 1: Invoice Details */}
           {step === 1 && (
@@ -307,18 +333,35 @@ export default function NewInvoicePage() {
                 {/* Client Selection */}
                 <div className="space-y-2">
                   <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Client Name</label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <select
-                      value={invoice.client_id}
-                      onChange={(e) => setInvoice({ ...invoice, client_id: e.target.value })}
-                      className="input-field appearance-none pl-12 pr-12 h-12"
-                    >
-                      <option value="">Select a client...</option>
-                      {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none opacity-50" />
-                  </div>
+                  {clients.length === 0 ? (
+                    <div className="p-4 bg-destructive/5 border border-destructive/20 rounded-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-destructive">No clients found</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">You need to add a client before creating an invoice.</p>
+                      </div>
+                      <Button
+                        onClick={() => router.push('/clients')}
+                        variant="outline"
+                        size="sm"
+                        className="w-full sm:w-auto border-destructive/30 text-destructive hover:bg-destructive/10"
+                      >
+                        Add New Client
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <select
+                        value={invoice.client_id}
+                        onChange={(e) => setInvoice({ ...invoice, client_id: e.target.value })}
+                        className="input-field appearance-none pl-12 pr-12 h-12"
+                      >
+                        <option value="">Select a client...</option>
+                        {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground pointer-events-none opacity-50" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Dates */}
@@ -346,6 +389,20 @@ export default function NewInvoicePage() {
                         className="input-field pl-12 h-12"
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* Project Description */}
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest">Project Description</label>
+                  <div className="relative">
+                    <FileText className="absolute left-4 top-3.5 w-4.5 h-4.5 text-muted-foreground" />
+                    <textarea
+                      value={invoice.project_description}
+                      onChange={(e) => setInvoice({ ...invoice, project_description: e.target.value })}
+                      placeholder="e.g. Master Bath Remodel - Phase 1"
+                      className="input-field pl-12 py-3 min-h-[80px] resize-none"
+                    />
                   </div>
                 </div>
               </div>

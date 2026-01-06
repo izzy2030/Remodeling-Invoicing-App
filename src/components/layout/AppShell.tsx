@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const isLoginPage = pathname === '/login'
+  const isNewInvoicePage = pathname === '/invoices/new'
 
   const getBreadcrumbs = () => {
     const paths = pathname.split('/').filter(Boolean)
@@ -24,7 +25,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     <div className={`min-h-screen ${!isLoginPage ? 'bg-mesh' : 'bg-background'}`}>
       {!isLoginPage && <Sidebar />}
       <main className={`flex-1 ${!isLoginPage ? 'md:ml-64 p-4 md:p-8 pt-20 md:pt-4' : ''}`}>
-        {!isLoginPage && (
+        {!isLoginPage && !isNewInvoicePage && (
           <div className="max-w-7xl mx-auto mb-8 hidden md:block animate-fade-up">
             <header className="flex items-center justify-between mb-8">
               {/* Breadcrumbs */}

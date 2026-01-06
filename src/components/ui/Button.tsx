@@ -32,7 +32,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       md: "h-12 px-6",
       lg: "h-14 px-8 text-base",
       icon: "h-10 w-10",
-      premium: "h-14 sm:h-16 px-6 text-base sm:text-lg",
+      premium: "h-14 px-6 text-base sm:text-lg",
     }
 
     return (
