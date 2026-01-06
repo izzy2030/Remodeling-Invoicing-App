@@ -33,6 +33,14 @@ import { Button } from '@/components/ui/Button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
 import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/Tooltip'
+import dynamic from 'next/dynamic'
+
+const PDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+  { ssr: false }
+)
+
+import { InvoicePDF } from '@/components/invoice/InvoicePDF'
 
 export default function InvoiceDetailsPage() {
   const { id } = useParams()
@@ -45,6 +53,10 @@ export default function InvoiceDetailsPage() {
     fetchInvoice()
   }, [id])
 
+  const [sendingEmail, setSendingEmail] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailTo, setEmailTo] = useState('')
+
   const fetchInvoice = async () => {
     setLoading(true)
     const [{ data: invData }, { data: settData }] = await Promise.all([
@@ -55,6 +67,62 @@ export default function InvoiceDetailsPage() {
     if (invData) setInvoice(invData)
     if (settData) setSettings(settData)
     setLoading(false)
+  }
+
+  const openEmailModal = () => {
+    setEmailTo(invoice?.clients?.email || '')
+    setShowEmailModal(true)
+  }
+
+  const handleSendEmail = async () => {
+    if (!emailTo) {
+      alert('Please enter an email address')
+      return
+    }
+
+    try {
+      setSendingEmail(true)
+
+      // 1. Generate PDF blob
+      const { pdf } = await import('@react-pdf/renderer')
+      const blob = await pdf(<InvoicePDF invoice={invoice} settings={settings} />).toBlob()
+
+      // 2. Convert blob to base64
+      const reader = new FileReader()
+      reader.readAsDataURL(blob)
+      reader.onloadend = async () => {
+        const base64data = (reader.result as string).split(',')[1]
+
+        // 3. Send via our API route
+        const response = await fetch('/api/send-invoice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: emailTo,
+            invoiceNumber: invoice.invoice_number,
+            pdfBase64: base64data,
+            clientName: invoice.clients?.name || 'Client',
+            companyName: settings.company_name,
+            amount: total.toLocaleString(undefined, { minimumFractionDigits: 2 }),
+          }),
+        })
+
+        const result = await response.json()
+
+        if (response.ok) {
+          alert(`Success! Invoice sent to ${emailTo}`)
+          setShowEmailModal(false)
+        } else {
+          console.error('Email error:', result.error)
+          alert(`Failed to send email: ${result.error?.message || result.error || 'Unknown error'}`)
+        }
+        setSendingEmail(false)
+      }
+    } catch (err) {
+      console.error('Error sending email:', err)
+      alert('An error occurred while preparing the email')
+      setSendingEmail(false)
+    }
   }
 
   if (loading) return (
@@ -84,276 +152,352 @@ export default function InvoiceDetailsPage() {
   const isOverdue = new Date(invoice.due_date) < new Date()
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-32">
-      {/* Top Navigation & Actions */}
-      <div className="flex items-center justify-between animate-fade-up">
-        <div className="flex items-center gap-4">
-          <Button variant="secondary" size="icon" onClick={() => router.back()} className="rounded-md h-11 w-11">
-            <ChevronLeft className="w-5 h-5" />
-          </Button>
-          <div className="hidden sm:block">
-            <h1 className="text-xl font-bold text-foreground font-syne tracking-tight">Invoice Details</h1>
-            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">#{invoice.invoice_number}</p>
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Button variant="outline" className="hidden sm:flex font-bold" onClick={() => window.print()}>
-            <Printer className="w-4 h-4 mr-2" />
-            Print
-          </Button>
-          <Button className="font-bold">
-            <Mail className="w-4 h-4 mr-2" />
-            Send to Client
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="h-11 w-11">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Invoice Actions</DropdownMenuLabel>
-              <DropdownMenuItem>
-                <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
-                Edit Details
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.print()}>
-                <Download className="w-4 h-4 mr-2 text-muted-foreground" />
-                Download PDF
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Share2 className="w-4 h-4 mr-2 text-muted-foreground" />
-                Copy Share Link
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Permanently
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Main Preview Container */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-        {/* Invoice Body */}
-        <div className="lg:col-span-8 space-y-8 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <div className="card-premium p-10 space-y-12 bg-white dark:bg-card">
-            {/* Branding Header */}
-            <div className="flex flex-col md:flex-row justify-between gap-10">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-primary rounded-md flex items-center justify-center">
-                    <Hammer className="w-6 h-6 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-black font-syne tracking-tighter uppercase">{settings?.company_name || 'Business'}</h2>
+    <>
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-up">
+          <div className="bg-background border border-border rounded-lg shadow-2xl w-full max-w-md mx-4 p-6 space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-primary/10 rounded-md flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-primary" />
                 </div>
-                <div className="space-y-1 text-sm text-muted-foreground font-medium">
-                  <p className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5" /> {settings?.company_address}</p>
-                  <p className="flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> {settings?.company_phone}</p>
-                  <p className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> {settings?.company_email}</p>
-                </div>
-              </div>
-              <div className="text-right space-y-2">
-                <h3 className="text-5xl font-black font-syne text-primary/10 uppercase tracking-tighter leading-none">Invoice</h3>
-                <p className="text-lg font-bold text-foreground font-syne tracking-tight">#{invoice.invoice_number}</p>
-                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isOverdue ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
-                  {isOverdue ? <Clock className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
-                  {isOverdue ? 'Overdue' : 'Pending'}
-                </div>
-              </div>
-            </div>
-
-            {/* Bill To & Dates */}
-            <div className="grid grid-cols-2 gap-10 py-10 border-y border-border/60">
-              <div className="space-y-3">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Bill To</p>
                 <div>
-                  <h4 className="text-xl font-bold text-foreground font-syne">{invoice.clients?.name}</h4>
-                  <p className="text-sm text-muted-foreground font-medium mt-1 whitespace-pre-line leading-relaxed">
-                    {invoice.clients?.address}
-                  </p>
+                  <h3 className="font-bold text-foreground">Send Invoice</h3>
+                  <p className="text-xs text-muted-foreground">#{invoice.invoice_number}</p>
                 </div>
               </div>
-              <div className="flex flex-col gap-6 md:text-right">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Issued On</p>
-                  <p className="text-sm font-bold text-foreground">{invoice.invoice_date}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Due Date</p>
-                  <p className="text-sm font-bold text-foreground">{invoice.due_date}</p>
-                </div>
-              </div>
+              <Button variant="ghost" size="icon" onClick={() => setShowEmailModal(false)} className="h-8 w-8">
+                <X className="w-4 h-4" />
+              </Button>
             </div>
 
-            {/* Line Items Table */}
-            <div className="space-y-6">
-              <div className="grid grid-cols-12 gap-4 pb-4 border-b border-border/60">
-                <div className="col-span-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Description</div>
-                <div className="col-span-4 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest">Amount</div>
-              </div>
-
-              {/* Labor */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Wrench className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-[11px] font-bold text-foreground uppercase tracking-widest">Labor & Services</span>
-                </div>
-                {invoice.labor_line1_desc && (
-                  <div className="grid grid-cols-12 gap-4 items-center group">
-                    <div className="col-span-8">
-                      <p className="text-sm font-bold text-foreground">{invoice.labor_line1_desc}</p>
-                    </div>
-                    <div className="col-span-4 text-right">
-                      <p className="text-sm font-bold text-foreground font-syne">${(invoice.labor_line1_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                    </div>
-                  </div>
-                )}
-                {invoice.labor_line2_desc && (
-                  <div className="grid grid-cols-12 gap-4 items-center group">
-                    <div className="col-span-8">
-                      <p className="text-sm font-bold text-foreground">{invoice.labor_line2_desc}</p>
-                    </div>
-                    <div className="col-span-4 text-right">
-                      <p className="text-sm font-bold text-foreground font-syne">${(invoice.labor_line2_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Materials */}
-              <div className="space-y-4 pt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="w-3.5 h-3.5 text-violet-500" />
-                  <span className="text-[11px] font-bold text-foreground uppercase tracking-widest">Materials & Components</span>
-                </div>
-                {invoice.materials_line1_desc && (
-                  <div className="grid grid-cols-12 gap-4 items-center group">
-                    <div className="col-span-8">
-                      <p className="text-sm font-bold text-foreground">{invoice.materials_line1_desc}</p>
-                    </div>
-                    <div className="col-span-4 text-right">
-                      <p className="text-sm font-bold text-foreground font-syne">${(invoice.materials_line1_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                    </div>
-                  </div>
-                )}
-                {invoice.materials_line2_desc && (
-                  <div className="grid grid-cols-12 gap-4 items-center group">
-                    <div className="col-span-8">
-                      <p className="text-sm font-bold text-foreground">{invoice.materials_line2_desc}</p>
-                    </div>
-                    <div className="col-span-4 text-right">
-                      <p className="text-sm font-bold text-foreground font-syne">${(invoice.materials_line2_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Recipient Email</label>
+              <input
+                type="email"
+                value={emailTo}
+                onChange={(e) => setEmailTo(e.target.value)}
+                placeholder="client@example.com"
+                className="w-full h-12 px-4 bg-secondary/50 border border-border rounded-md text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
             </div>
 
-            {/* Total Calculations */}
-            <div className="pt-10 border-t border-border/60 flex flex-col items-end gap-3 pr-2">
-              <div className="flex justify-between items-center gap-12 text-sm">
-                <span className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Subtotal</span>
-                <span className="font-bold text-foreground font-syne">${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="flex justify-between items-center gap-12 text-sm">
-                <span className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tax ({invoice.tax_rate}%)</span>
-                <span className="font-bold text-foreground font-syne">${tax.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="flex justify-between items-center gap-12 pt-4 group">
-                <span className="font-black text-foreground uppercase tracking-[0.2em] text-[13px]">Total Due</span>
-                <span className="text-4xl font-black text-primary font-syne tracking-tighter">${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
-              </div>
+            <div className="p-4 bg-secondary/30 rounded-md border border-border/60 space-y-2">
+              <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Amount</p>
+              <p className="text-2xl font-bold text-primary font-syne">${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
             </div>
 
-            {/* Notes Section */}
-            {invoice.notes && (
-              <div className="pt-12 space-y-3">
-                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Notes & Terms</p>
-                <div className="p-6 bg-secondary/30 rounded-md border border-border/40">
-                  <p className="text-sm font-medium text-foreground/80 leading-relaxed italic">
-                    {invoice.notes}
-                  </p>
-                </div>
-              </div>
-            )}
+            <div className="flex gap-3">
+              <Button variant="secondary" className="flex-1" onClick={() => setShowEmailModal(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSendEmail}
+                disabled={sendingEmail || !emailTo}
+                className="flex-1 font-bold"
+              >
+                {sendingEmail ? (
+                  <>
+                    <div className="w-4 h-4 mr-2 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="w-4 h-4 mr-2" />
+                    Send Invoice
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="max-w-4xl mx-auto space-y-8 pb-32">
+        {/* Top Navigation & Actions */}
+        <div className="flex items-center justify-between animate-fade-up">
+          <div className="flex items-center gap-4">
+            <Button variant="secondary" size="icon" onClick={() => router.back()} className="rounded-md h-11 w-11">
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold text-foreground font-syne tracking-tight">Invoice Details</h1>
+              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">#{invoice.invoice_number}</p>
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <Button variant="outline" className="hidden sm:flex font-bold" onClick={() => window.print()}>
+              <Printer className="w-4 h-4 mr-2" />
+              Print
+            </Button>
+            <Button
+              onClick={openEmailModal}
+              className="font-bold"
+            >
+              <Mail className="w-4 h-4 mr-2" />
+              Send to Client
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-11 w-11">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Invoice Actions</DropdownMenuLabel>
+                <DropdownMenuItem>
+                  <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
+                  Edit Details
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <PDFDownloadLink
+                    document={<InvoicePDF invoice={invoice} settings={settings} />}
+                    fileName={`Invoice-${invoice.invoice_number}.pdf`}
+                    className="w-full"
+                  >
+                    {({ loading }: { loading: boolean }) => (
+                      <div className="flex items-center w-full px-2 py-1.5 cursor-default hover:bg-accent hover:text-accent-foreground rounded-sm">
+                        <Download className="w-4 h-4 mr-2 text-muted-foreground" />
+                        {loading ? 'Preparing...' : 'Download PDF'}
+                      </div>
+                    )}
+                  </PDFDownloadLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Share2 className="w-4 h-4 mr-2 text-muted-foreground" />
+                  Copy Share Link
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Permanently
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
-        {/* Sidebar Info */}
-        <div className="lg:col-span-4 space-y-6 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          {/* Client Summary Card */}
-          <div className="card-premium p-6 space-y-6">
-            <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">Client Contact</h4>
-            <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12 rounded-md">
-                <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                  {invoice.clients?.name?.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h5 className="font-bold text-foreground">{invoice.clients?.name}</h5>
-                <p className="text-xs text-muted-foreground">ID: {invoice.clients?.id?.substring(0, 8)}</p>
+        {/* Main Preview Container */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+          {/* Invoice Body */}
+          <div className="lg:col-span-8 space-y-8 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+            <div className="card-premium p-10 space-y-12 bg-white dark:bg-card">
+              {/* Branding Header */}
+              <div className="flex flex-col md:flex-row justify-between gap-10">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-primary rounded-md flex items-center justify-center">
+                      <Hammer className="w-6 h-6 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-black font-syne tracking-tighter uppercase">{settings?.company_name || 'Business'}</h2>
+                  </div>
+                  <div className="space-y-1 text-sm text-muted-foreground font-medium">
+                    <p className="flex items-center gap-2"><MapPin className="w-3.5 h-3.5" /> {settings?.company_address}</p>
+                    <p className="flex items-center gap-2"><Phone className="w-3.5 h-3.5" /> {settings?.company_phone}</p>
+                    <p className="flex items-center gap-2"><Mail className="w-3.5 h-3.5" /> {settings?.company_email}</p>
+                  </div>
+                </div>
+                <div className="text-right space-y-2">
+                  <h3 className="text-5xl font-black font-syne text-primary/10 uppercase tracking-tighter leading-none">Invoice</h3>
+                  <p className="text-lg font-bold text-foreground font-syne tracking-tight">#{invoice.invoice_number}</p>
+                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${isOverdue ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
+                    {isOverdue ? <Clock className="w-3 h-3" /> : <CheckCircle className="w-3 h-3" />}
+                    {isOverdue ? 'Overdue' : 'Pending'}
+                  </div>
+                </div>
               </div>
+
+              {/* Bill To & Dates */}
+              <div className="grid grid-cols-2 gap-10 py-10 border-y border-border/60">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Bill To</p>
+                  <div>
+                    <h4 className="text-xl font-bold text-foreground font-syne">{invoice.clients?.name}</h4>
+                    <p className="text-sm text-muted-foreground font-medium mt-1 whitespace-pre-line leading-relaxed">
+                      {invoice.clients?.address}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-6 md:text-right">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Issued On</p>
+                    <p className="text-sm font-bold text-foreground">{invoice.invoice_date}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Due Date</p>
+                    <p className="text-sm font-bold text-foreground">{invoice.due_date}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Line Items Table */}
+              <div className="space-y-6">
+                <div className="grid grid-cols-12 gap-4 pb-4 border-b border-border/60">
+                  <div className="col-span-8 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Description</div>
+                  <div className="col-span-4 text-right text-[10px] font-black text-muted-foreground uppercase tracking-widest">Amount</div>
+                </div>
+
+                {/* Labor */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wrench className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] font-bold text-foreground uppercase tracking-widest">Labor & Services</span>
+                  </div>
+                  {invoice.labor_line1_desc && (
+                    <div className="grid grid-cols-12 gap-4 items-center group">
+                      <div className="col-span-8">
+                        <p className="text-sm font-bold text-foreground">{invoice.labor_line1_desc}</p>
+                      </div>
+                      <div className="col-span-4 text-right">
+                        <p className="text-sm font-bold text-foreground font-syne">${(invoice.labor_line1_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                      </div>
+                    </div>
+                  )}
+                  {invoice.labor_line2_desc && (
+                    <div className="grid grid-cols-12 gap-4 items-center group">
+                      <div className="col-span-8">
+                        <p className="text-sm font-bold text-foreground">{invoice.labor_line2_desc}</p>
+                      </div>
+                      <div className="col-span-4 text-right">
+                        <p className="text-sm font-bold text-foreground font-syne">${(invoice.labor_line2_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Materials */}
+                <div className="space-y-4 pt-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Package className="w-3.5 h-3.5 text-violet-500" />
+                    <span className="text-[11px] font-bold text-foreground uppercase tracking-widest">Materials & Components</span>
+                  </div>
+                  {invoice.materials_line1_desc && (
+                    <div className="grid grid-cols-12 gap-4 items-center group">
+                      <div className="col-span-8">
+                        <p className="text-sm font-bold text-foreground">{invoice.materials_line1_desc}</p>
+                      </div>
+                      <div className="col-span-4 text-right">
+                        <p className="text-sm font-bold text-foreground font-syne">${(invoice.materials_line1_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                      </div>
+                    </div>
+                  )}
+                  {invoice.materials_line2_desc && (
+                    <div className="grid grid-cols-12 gap-4 items-center group">
+                      <div className="col-span-8">
+                        <p className="text-sm font-bold text-foreground">{invoice.materials_line2_desc}</p>
+                      </div>
+                      <div className="col-span-4 text-right">
+                        <p className="text-sm font-bold text-foreground font-syne">${(invoice.materials_line2_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Total Calculations */}
+              <div className="pt-10 border-t border-border/60 flex flex-col items-end gap-3 pr-2">
+                <div className="flex justify-between items-center gap-12 text-sm">
+                  <span className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Subtotal</span>
+                  <span className="font-bold text-foreground font-syne">${subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between items-center gap-12 text-sm">
+                  <span className="font-bold text-muted-foreground uppercase tracking-widest text-[10px]">Tax ({invoice.tax_rate}%)</span>
+                  <span className="font-bold text-foreground font-syne">${tax.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between items-center gap-12 pt-4 group">
+                  <span className="font-black text-foreground uppercase tracking-[0.2em] text-[13px]">Total Due</span>
+                  <span className="text-4xl font-black text-primary font-syne tracking-tighter">${total.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+
+              {/* Notes Section */}
+              {invoice.notes && (
+                <div className="pt-12 space-y-3">
+                  <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em]">Notes & Terms</p>
+                  <div className="p-6 bg-secondary/30 rounded-md border border-border/40">
+                    <p className="text-sm font-medium text-foreground/80 leading-relaxed italic">
+                      {invoice.notes}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="space-y-2 pt-2">
-              <Button variant="outline" className="w-full justify-start text-xs font-bold" size="sm">
-                <Mail className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
-                {invoice.clients?.email}
-              </Button>
-              <Button variant="outline" className="w-full justify-start text-xs font-bold" size="sm">
-                <Phone className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
-                {invoice.clients?.phone || 'Add phone number'}
-              </Button>
-            </div>
-            <Button className="w-full font-bold" size="sm" variant="secondary" onClick={() => router.push('/clients')}>
-              View Profile
-              <ExternalLink className="w-3.5 h-3.5 ml-2" />
-            </Button>
           </div>
 
-          {/* Payment Status Card */}
-          <div className="card-premium p-6 space-y-6 overflow-hidden relative">
-            <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
-            <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">Payment Status</h4>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-bold">Method</span>
+          {/* Sidebar Info */}
+          <div className="lg:col-span-4 space-y-6 animate-fade-up" style={{ animationDelay: '0.2s' }}>
+            {/* Client Summary Card */}
+            <div className="card-premium p-6 space-y-6">
+              <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">Client Contact</h4>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-12 w-12 rounded-md">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                    {invoice.clients?.name?.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h5 className="font-bold text-foreground">{invoice.clients?.name}</h5>
+                  <p className="text-xs text-muted-foreground">ID: {invoice.clients?.id?.substring(0, 8)}</p>
                 </div>
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Wire / Check</span>
               </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm font-bold">Term</span>
-                </div>
-                <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Net 15</span>
+              <div className="space-y-2 pt-2">
+                <Button variant="outline" className="w-full justify-start text-xs font-bold" size="sm">
+                  <Mail className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+                  {invoice.clients?.email}
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-xs font-bold" size="sm">
+                  <Phone className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+                  {invoice.clients?.phone || 'Add phone number'}
+                </Button>
               </div>
-              <Button className="w-full font-bold mt-2" size="lg" variant="secondary">
-                Mark as Paid
+              <Button className="w-full font-bold" size="sm" variant="secondary" onClick={() => router.push('/clients')}>
+                View Profile
+                <ExternalLink className="w-3.5 h-3.5 ml-2" />
               </Button>
             </div>
-          </div>
 
-          {/* AI Insight */}
-          <div className="card-premium p-6 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-indigo-500/10">
-            <div className="flex items-center gap-2 mb-4">
-              <Sparkles className="w-4 h-4 text-indigo-500" />
-              <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">AI Prediction</span>
+            {/* Payment Status Card */}
+            <div className="card-premium p-6 space-y-6 overflow-hidden relative">
+              <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-primary/5 rounded-full blur-2xl" />
+              <h4 className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">Payment Status</h4>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-bold">Method</span>
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Wire / Check</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm font-bold">Term</span>
+                  </div>
+                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Net 15</span>
+                </div>
+                <Button className="w-full font-bold mt-2" size="lg" variant="secondary">
+                  Mark as Paid
+                </Button>
+              </div>
             </div>
-            <p className="text-xs font-medium text-muted-foreground leading-relaxed">
-              Based on historical data for {invoice.clients?.name}, this invoice is predicted to be paid within 4 days of the due date.
-            </p>
+
+            {/* AI Insight */}
+            <div className="card-premium p-6 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-indigo-500/10">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-4 h-4 text-indigo-500" />
+                <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">AI Prediction</span>
+              </div>
+              <p className="text-xs font-medium text-muted-foreground leading-relaxed">
+                Based on historical data for {invoice.clients?.name}, this invoice is predicted to be paid within 4 days of the due date.
+              </p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   )
 }

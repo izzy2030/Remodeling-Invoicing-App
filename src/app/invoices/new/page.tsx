@@ -231,25 +231,14 @@ export default function NewInvoicePage() {
 
     console.log('Submitting invoice data:', invoiceData)
 
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      alert('You must be logged in to create invoices')
-      setLoading(false)
-      return
-    }
-
-    const { error } = await supabase.from('invoices').insert([{
-      ...invoiceData,
-      user_id: user.id
-    }])
+    const { data, error } = await supabase.from('invoices').insert([invoiceData]).select('id').single()
 
     if (error) {
       console.error('Supabase Invoicing Error:', error.message, error.details, error.hint, error)
       alert(`Error creating invoice: ${error.message}`)
     } else {
       await supabase.from('settings').update({ next_invoice_number: settings.next_invoice_number + 1 }).eq('id', 1)
-      router.push('/')
+      router.push(`/invoices/${data.id}`)
     }
     setLoading(false)
   }

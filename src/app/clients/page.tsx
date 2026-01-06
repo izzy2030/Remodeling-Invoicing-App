@@ -32,6 +32,7 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true)
   const [clients, setClients] = useState<any[]>([])
   const [showModal, setShowModal] = useState(false)
+  const [editingClient, setEditingClient] = useState<any>(null)
   const [newClient, setNewClient] = useState({
     name: '',
     email: '',
@@ -51,31 +52,78 @@ export default function ClientsPage() {
     setLoading(false)
   }
 
+  const openEditModal = (client: any) => {
+    setEditingClient(client)
+    setNewClient({
+      name: client.name,
+      email: client.email,
+      phone: client.phone || '',
+      address: client.address || ''
+    })
+    setShowModal(true)
+  }
+
+  const closeModal = () => {
+    setShowModal(false)
+    setEditingClient(null)
+    setNewClient({ name: '', email: '', phone: '', address: '' })
+  }
+
   const handleAddClient = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
 
-    const { data: { user } } = await supabase.auth.getUser()
+    if (editingClient) {
+      // Update existing client
+      const { error } = await supabase
+        .from('clients')
+        .update(newClient)
+        .eq('id', editingClient.id)
 
-    if (!user) {
-      alert('You must be logged in to add clients')
-      setSubmitting(false)
+      if (!error) {
+        closeModal()
+        fetchClients()
+      } else {
+        console.error('Error updating client:', error)
+        alert('Error updating client')
+      }
+    } else {
+      // Add new client
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        alert('You must be logged in to add clients')
+        setSubmitting(false)
+        return
+      }
+
+      const { error } = await supabase.from('clients').insert([{
+        ...newClient,
+        user_id: user.id
+      }])
+
+      if (!error) {
+        closeModal()
+        fetchClients()
+      } else {
+        console.error('Error adding client:', error)
+      }
+    }
+    setSubmitting(false)
+  }
+
+  const handleDeleteClient = async (clientId: string, clientName: string) => {
+    if (!confirm(`Are you sure you want to delete "${clientName}"? This action cannot be undone.`)) {
       return
     }
 
-    const { error } = await supabase.from('clients').insert([{
-      ...newClient,
-      user_id: user.id
-    }])
-
-    if (!error) {
-      setShowModal(false)
-      setNewClient({ name: '', email: '', phone: '', address: '' })
-      fetchClients()
+    const { error } = await supabase.from('clients').delete().eq('id', clientId)
+    if (error) {
+      console.error('Error deleting client:', error)
+      alert('Error deleting client')
     } else {
-      console.error('Error adding client:', error)
+      fetchClients()
     }
-    setSubmitting(false)
   }
 
   return (
@@ -91,17 +139,17 @@ export default function ClientsPage() {
           <p className="text-muted-foreground font-medium mt-2">Manage your professional relationships and project history.</p>
         </div>
 
-        <Dialog open={showModal} onOpenChange={setShowModal}>
+        <Dialog open={showModal} onOpenChange={(open) => !open && closeModal()}>
           <DialogTrigger asChild>
-            <Button className="h-14 px-8">
+            <Button className="h-14 px-8" onClick={() => { setEditingClient(null); setNewClient({ name: '', email: '', phone: '', address: '' }) }}>
               <UserPlus className="w-4 h-4 mr-2" />
               Add Client
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-xl">
             <DialogHeader>
-              <DialogTitle>New Client</DialogTitle>
-              <DialogDescription>Add a new customer to your directory.</DialogDescription>
+              <DialogTitle>{editingClient ? 'Edit Client' : 'New Client'}</DialogTitle>
+              <DialogDescription>{editingClient ? 'Update client details below.' : 'Add a new customer to your directory.'}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleAddClient} className="space-y-5 py-4">
               <div className="space-y-2">
@@ -165,11 +213,11 @@ export default function ClientsPage() {
               </div>
 
               <DialogFooter className="pt-4">
-                <Button type="button" variant="secondary" onClick={() => setShowModal(false)} className="flex-1">
+                <Button type="button" variant="secondary" onClick={closeModal} className="flex-1">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={submitting} className="flex-1">
-                  {submitting ? 'Creating...' : 'Create Client'}
+                  {submitting ? (editingClient ? 'Saving...' : 'Creating...') : (editingClient ? 'Save Changes' : 'Create Client')}
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </DialogFooter>
@@ -239,18 +287,21 @@ export default function ClientsPage() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Client Options</DropdownMenuLabel>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => openEditModal(client)}>
                       <Edit className="w-4 h-4 mr-2 text-muted-foreground" />
                       Edit Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <ExternalLink className="w-4 h-4 mr-2 text-muted-foreground" />
-                      View Portfolio
+                    <DropdownMenuItem onClick={() => window.open(`mailto:${client.email}`)}>
+                      <Mail className="w-4 h-4 mr-2 text-muted-foreground" />
+                      Send Email
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                    <DropdownMenuItem
+                      onClick={() => handleDeleteClient(client.id, client.name)}
+                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                    >
                       <Trash className="w-4 h-4 mr-2" />
-                      Archive Client
+                      Delete Client
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -291,25 +342,36 @@ export default function ClientsPage() {
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="w-9 h-9 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md flex items-center justify-center border border-emerald-500/20">
+                        <button
+                          onClick={() => window.open(`mailto:${client.email}`)}
+                          className="w-9 h-9 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-md flex items-center justify-center border border-emerald-500/20 hover:bg-emerald-500/20 transition-colors"
+                        >
                           <CreditCard className="w-4.5 h-4.5" />
-                        </div>
+                        </button>
                       </TooltipTrigger>
-                      <TooltipContent>Payment History</TooltipContent>
+                      <TooltipContent>Send Payment Link</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="w-9 h-9 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center border border-blue-500/20">
+                        <button
+                          onClick={() => openEditModal(client)}
+                          className="w-9 h-9 bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-md flex items-center justify-center border border-blue-500/20 hover:bg-blue-500/20 transition-colors"
+                        >
                           <Briefcase className="w-4.5 h-4.5" />
-                        </div>
+                        </button>
                       </TooltipTrigger>
-                      <TooltipContent>Project Log</TooltipContent>
+                      <TooltipContent>Edit Client</TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <Button variant="ghost" size="sm" className="font-bold text-primary uppercase tracking-widest text-[10px] h-9">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openEditModal(client)}
+                  className="font-bold text-primary uppercase tracking-widest text-[10px] h-9"
+                >
                   View Profile
                   <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>
