@@ -27,6 +27,7 @@ import {
 import { Button } from '@/components/ui/Button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/DropdownMenu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/Popover'
+import SpotlightCard from '@/components/ui/SpotlightCard'
 
 export default function InvoicesPage() {
   const [loading, setLoading] = useState(true)
@@ -65,8 +66,8 @@ export default function InvoicesPage() {
   const totalVolume = invoices.reduce((sum, inv) => sum + calculateInvoiceTotal(inv), 0)
 
   const StatCard = ({ label, value, icon: Icon, gradient, delay }: any) => (
-    <div
-      className="card-premium p-5 group animate-fade-up"
+    <SpotlightCard
+      className="p-5 group animate-fade-up"
       style={{ animationDelay: `${delay}s` }}
     >
       <div className="flex items-start justify-between mb-4">
@@ -88,7 +89,7 @@ export default function InvoicesPage() {
       </div>
       <p className="text-xs font-semibold text-muted-foreground mb-1">{label}</p>
       <p className="text-2xl font-bold text-foreground font-syne tracking-tight">{value}</p>
-    </div>
+    </SpotlightCard>
   )
 
   return (
@@ -204,9 +205,9 @@ export default function InvoicesPage() {
             const total = calculateInvoiceTotal(invoice)
 
             return (
-              <div
+              <SpotlightCard
                 key={invoice.id}
-                className="card-premium p-5 group animate-fade-up"
+                className="p-5 group animate-fade-up"
                 style={{ animationDelay: `${0.3 + (index * 0.03)}s` }}
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
@@ -285,7 +286,7 @@ export default function InvoicesPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </SpotlightCard>
             )
           })}
 

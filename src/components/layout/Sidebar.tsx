@@ -25,6 +25,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/Avatar'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/Dialog'
 
+import SpotlightCard from '@/components/ui/SpotlightCard'
+
 const mainNav = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Invoices', href: '/invoices', icon: FileText },
@@ -121,7 +123,8 @@ export default function Sidebar() {
         </nav>
 
         {/* Stats mini-card */}
-        <div className="mt-8 mx-1 p-4 rounded-md bg-gradient-to-br from-secondary to-secondary/50 border border-border relative overflow-hidden">
+        {/* Stats mini-card */}
+        <SpotlightCard className="mt-8 mx-1 p-4 bg-gradient-to-br from-secondary/50 to-secondary/30 border-border/50">
           <div className="absolute -right-4 -bottom-4 opacity-5">
             <TrendingUp className="w-20 h-20" />
           </div>
@@ -131,7 +134,7 @@ export default function Sidebar() {
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
             <p className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">+18% growth</p>
           </div>
-        </div>
+        </SpotlightCard>
       </div>
 
       {/* User profile with Radix Dropdown */}
