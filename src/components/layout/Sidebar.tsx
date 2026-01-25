@@ -221,7 +221,7 @@ export default function Sidebar() {
       </header>
 
       {/* Desktop Sidebar */}
-      <aside className="fixed inset-y-0 left-0 w-64 bg-card/50 backdrop-blur-md border-r border-border hidden md:flex flex-col z-40">
+      <aside className="fixed inset-y-0 left-0 w-64 border-r border-border hidden md:flex flex-col z-40 glass">
         <SidebarContent />
       </aside>
     </>
