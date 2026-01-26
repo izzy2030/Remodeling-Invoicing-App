@@ -1,6 +1,7 @@
 -- Create clients table
 CREATE TABLE IF NOT EXISTS public.clients (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users DEFAULT auth.uid(),
     name TEXT NOT NULL,
     email TEXT NOT NULL,
     phone TEXT,
@@ -11,6 +12,7 @@ CREATE TABLE IF NOT EXISTS public.clients (
 -- Create invoices table
 CREATE TABLE IF NOT EXISTS public.invoices (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    user_id UUID REFERENCES auth.users DEFAULT auth.uid(),
     client_id UUID REFERENCES public.clients(id) ON DELETE CASCADE NOT NULL,
     invoice_number TEXT UNIQUE NOT NULL,
     invoice_date DATE DEFAULT CURRENT_DATE NOT NULL,
@@ -33,6 +35,7 @@ CREATE TABLE IF NOT EXISTS public.invoices (
 -- Create settings table
 CREATE TABLE IF NOT EXISTS public.settings (
     id INTEGER PRIMARY KEY CHECK (id = 1),
+    user_id UUID REFERENCES auth.users,
     company_name TEXT,
     company_phone TEXT,
     company_email TEXT,
@@ -55,18 +58,24 @@ ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 
--- Simple policy: authenticated users can do everything (assuming single-owner app)
-CREATE POLICY "Allow all actions for authenticated users" ON public.clients
-    FOR ALL USING (auth.role() = 'authenticated');
+-- Clients: Users can only see and manage their own clients
+CREATE POLICY "Users can manage their own clients" ON public.clients
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Allow all actions for authenticated users" ON public.invoices
-    FOR ALL USING (auth.role() = 'authenticated');
+-- Invoices: Users can only see and manage their own invoices
+CREATE POLICY "Users can manage their own invoices" ON public.invoices
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
+-- Settings:
+-- 1. Allow public read access (for branding on login page)
+CREATE POLICY "Allow public read access to settings" ON public.settings
+    FOR SELECT USING (true);
+
+-- 2. Allow authenticated users to update settings (assuming id=1 for now)
 CREATE POLICY "Allow all actions for authenticated users" ON public.settings
-    FOR ALL USING (auth.role() = 'authenticated');
+    FOR ALL USING (auth.role() = 'authenticated') WITH CHECK (auth.role() = 'authenticated');
 
--- Storage Bucket setup (Note: requires manual creation in Supabase Dashboard as well)
--- This SQL just helps if the user uses the Supabase API to manage buckets
+-- Storage Bucket setup
 INSERT INTO storage.buckets (id, name, public) 
 VALUES ('company-assets', 'company-assets', true)
 ON CONFLICT (id) DO NOTHING;
