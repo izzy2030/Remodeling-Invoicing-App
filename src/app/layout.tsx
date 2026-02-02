@@ -1,18 +1,18 @@
-import { Syne, DM_Sans } from 'next/font/google'
+import { Poppins, Open_Sans } from 'next/font/google'
 import AppShell from '@/components/layout/AppShell'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import './globals.css'
 
-const syne = Syne({
+const poppins = Poppins({
   subsets: ['latin'],
-  variable: '--font-syne',
+  variable: '--font-poppins',
   display: 'swap',
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700'],
 })
 
-const dmSans = DM_Sans({
+const openSans = Open_Sans({
   subsets: ['latin'],
-  variable: '--font-dm-sans',
+  variable: '--font-open-sans',
   display: 'swap',
   weight: ['400', '500', '600', '700'],
 })
@@ -29,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
-      <body className="font-dm-sans min-h-screen bg-background text-foreground antialiased" suppressHydrationWarning>
+    <html lang="en" className={`${poppins.variable} ${openSans.variable}`} suppressHydrationWarning>
+      <body className="font-open-sans min-h-screen bg-background text-foreground antialiased" suppressHydrationWarning>
         <ThemeProvider>
           <AppShell>
             {children}

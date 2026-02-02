@@ -155,13 +155,17 @@ export default function DashboardPage() {
       ? [{ v: 10 }, { v: 20 }, { v: 15 }, { v: 25 }, { v: 20 }, { v: 35 }, { v: 40 }]
       : [{ v: 40 }, { v: 35 }, { v: 20 }, { v: 25 }, { v: 15 }, { v: 20 }, { v: 10 }]
 
+    // Clean color string for ID
+    const safeId = color.replace(/[^a-z0-9]/gi, '')
+    const gradientId = `spark-${safeId}-${trend}`
+
     return (
       <div className="w-32 h-16">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <defs>
-              <linearGradient id={`spark-${color}-${trend}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor={color} stopOpacity={0.3} />
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={color} stopOpacity={0.15} />
                 <stop offset="100%" stopColor={color} stopOpacity={0} />
               </linearGradient>
             </defs>
@@ -170,7 +174,8 @@ export default function DashboardPage() {
               dataKey="v"
               stroke={color}
               strokeWidth={2}
-              fill={`url(#spark-${color}-${trend})`}
+              fill={`url(#${gradientId})`}
+              isAnimationActive={false}
             />
           </AreaChart>
         </ResponsiveContainer>
