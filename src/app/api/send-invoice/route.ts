@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
+// Initialize Resend inside the request handler or lazily to avoid build-time errors if the API key is missing
 export async function POST(req: Request) {
+    const resend = new Resend(process.env.RESEND_API_KEY)
     try {
         const { to, invoiceNumber, pdfBase64, clientName, companyName, amount } = await req.json()
 
