@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     },
     companyName: {
         fontSize: 20,
-        fontWeight: 900,
+        fontWeight: 'bold',
         textTransform: 'uppercase',
         letterSpacing: -0.5,
     },
@@ -47,14 +47,14 @@ const styles = StyleSheet.create({
     },
     invoiceLabel: {
         fontSize: 32,
-        fontWeight: 900,
+        fontWeight: 'bold',
         color: '#f3f4f6',
         textTransform: 'uppercase',
         marginBottom: -5,
     },
     invoiceNumber: {
         fontSize: 12,
-        fontWeight: 700,
+        fontWeight: 'bold',
     },
     billingSection: {
         flexDirection: 'row',
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     },
     sectionLabel: {
         fontSize: 8,
-        fontWeight: 900,
+        fontWeight: 'bold',
         color: '#9ca3af',
         textTransform: 'uppercase',
         letterSpacing: 1.5,
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     },
     clientName: {
         fontSize: 14,
-        fontWeight: 700,
+        fontWeight: 'bold',
         marginBottom: 4,
     },
     clientDetails: {
@@ -89,10 +89,10 @@ const styles = StyleSheet.create({
     },
     dateLabel: {
         color: '#9ca3af',
-        fontWeight: 700,
+        fontWeight: 'bold',
     },
     dateValue: {
-        fontWeight: 700,
+        fontWeight: 'bold',
     },
     table: {
         marginBottom: 30,
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     },
     tableHeaderText: {
         fontSize: 8,
-        fontWeight: 900,
+        fontWeight: 'bold',
         color: '#9ca3af',
         textTransform: 'uppercase',
         letterSpacing: 1,
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     },
     categoryLabel: {
         fontSize: 9,
-        fontWeight: 900,
+        fontWeight: 'bold',
         textTransform: 'uppercase',
         letterSpacing: 1,
     },
@@ -151,13 +151,13 @@ const styles = StyleSheet.create({
     },
     totalLabel: {
         fontSize: 9,
-        fontWeight: 700,
+        fontWeight: 'bold',
         color: '#6b7280',
         textTransform: 'uppercase',
     },
     totalValue: {
         fontSize: 11,
-        fontWeight: 700,
+        fontWeight: 'bold',
         width: 80,
         textAlign: 'right',
     },
@@ -174,12 +174,12 @@ const styles = StyleSheet.create({
     },
     grandTotalLabel: {
         fontSize: 12,
-        fontWeight: 900,
+        fontWeight: 'bold',
         textTransform: 'uppercase',
     },
     grandTotalValue: {
         fontSize: 24,
-        fontWeight: 900,
+        fontWeight: 'bold',
         width: 120,
         textAlign: 'right',
     },
