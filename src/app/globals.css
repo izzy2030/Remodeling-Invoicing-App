@@ -81,7 +81,7 @@
   --ring: #3b82f6;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
